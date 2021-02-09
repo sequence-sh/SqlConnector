@@ -1,10 +1,10 @@
 ﻿using Reductech.EDR.Core;
-using Reductech.EDR.Core.Internal;
-using Reductech.EDR.Core.Steps;
 using Reductech.EDR.Core.TestHarness;
-using static Reductech.EDR.Core.TestHarness.StaticHelpers;
-using Reductech.EDR.Core.Util;
 using System.Collections.Generic;
+using System.Data;
+using Reductech.EDR.Core.Steps;
+using Reductech.EDR.Core.Util;
+using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
@@ -16,43 +16,52 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
     {
         get
         {
-            yield return new StepCase(
-                "Run a SQL query and print each row",
-                new ForEach<Entity>()
-                {
-                    Array = new SqlQuery
-                    {
-                        Server   = Constant("server"),
-                        Database = Constant("database"),
-                        Query    = Constant("SELECT * FROM TABLE1")
-                    },
-                    Action = new Print<Entity>
-                    {
-                        Value = new GetVariable<Entity> { Variable = VariableName.Entity }
-                    }
-                },
-                Unit.Default,
-                "(Col1: \"Row1\" Col2: 1)",
-                "(Col1: \"Row2\" Col2: 2)"
-            );
-        }
-    }
+            DataTable dt = new();
+            dt.Clear();
+            dt.Columns.Add("Name");
+            dt.Columns.Add("Id");
+            dt.Rows.Add("Mark", 500);
+            dt.Rows.Add("Ruth", 501);
 
-    /// <inheritdoc />
-    protected override IEnumerable<DeserializeCase> DeserializeCases
-    {
-        get
-        {
-            yield return new DeserializeCase(
-                "Run script that returns two PSObjects and print results",
-                @"
-- ForEach
-    Array: (SqlQuery Server: ""server"" Database: ""database"" Query: ""SELECT * FROM TABLE1"")
-    Action: (Print <entity>)",
-                Unit.Default,
-                "(Col1: \"Row1\" Col2: 1)",
-                "(Col1: \"Row2\" Col2: 2)"
-            );
+            var stepCase = new StepCase(
+                        "Connect to SQL Lite",
+                        new ForEach<Entity>()
+                        {
+                            Array = new SqlQuery()
+                            {
+                                ConnectionString = Constant(@"My Connection String"),
+                                Query            = Constant(@"My Query String"),
+                                DatabaseType     = Constant(DatabaseType.SqlLite)
+                            },
+                            Action = new Print<Entity>() { Value = GetEntityVariable }
+                        },
+                        Unit.Default
+                    )
+                    .WithConsoleAction(
+                        x => x.Setup(c => c.WriteLine("(Name: \"Mark\" Id: \"500\")"))
+                    )
+                    .WithConsoleAction(
+                        x => x.Setup(c => c.WriteLine("(Name: \"Ruth\" Id: \"501\")"))
+                    )
+                    .WithContextMock(
+                        SqlQuery.DbConnectionName,
+                        mr =>
+                        {
+                            var factory =
+                                DbMockHelper.SetupConnectionFactory(
+                                    mr,
+                                    DatabaseType.SqlLite,
+                                    "My Connection String",
+                                    "My Query String",
+                                    dt
+                                );
+
+                            return factory;
+                        }
+                    )
+                ;
+
+            yield return stepCase;
         }
     }
 }
