@@ -8,6 +8,8 @@ namespace Reductech.EDR.Connectors.Sql
 
 public class DbConnectionFactory : IDbConnectionFactory
 {
+    public const string DbConnectionName = "DbConnection";
+
     private DbConnectionFactory() { }
     public static IDbConnectionFactory Instance { get; } = new DbConnectionFactory();
 

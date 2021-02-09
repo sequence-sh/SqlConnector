@@ -19,8 +19,6 @@ namespace Reductech.EDR.Connectors.Sql
 /// </summary>
 public sealed class SqlQuery : CompoundStep<Array<Entity>>
 {
-    public const string DbConnectionName = "DbConnection";
-
     /// <inheritdoc />
     protected override async Task<Result<Array<Entity>, IError>> Run(
         IStateMonad stateMonad,
@@ -44,7 +42,7 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
             return databaseType.ConvertFailure<Array<Entity>>();
 
         var factory = stateMonad.ExternalContext
-            .TryGetContext<IDbConnectionFactory>(DbConnectionName);
+            .TryGetContext<IDbConnectionFactory>(DbConnectionFactory.DbConnectionName);
 
         if (factory.IsFailure)
             return factory.MapError(x => x.WithLocation(this)).ConvertFailure<Array<Entity>>();
@@ -57,7 +55,7 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
         conn.Open();
 
         var command = conn.CreateCommand();
-        command.CommandText = Query.Name;
+        command.CommandText = query.Value;
 
         var dbReader = command.ExecuteReader();
 
