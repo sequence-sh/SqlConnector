@@ -58,7 +58,7 @@ public partial class ExampleTests
             ExternalContext.Default.FileSystemHelper,
             ExternalContext.Default.ExternalProcessRunner,
             ExternalContext.Default.Console,
-            (SqlQuery.DbConnectionName, DbConnectionFactory.Instance)
+            (DbConnectionFactory.DbConnectionName, DbConnectionFactory.Instance)
         );
 
         var monad = new StateMonad(

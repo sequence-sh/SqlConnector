@@ -46,14 +46,14 @@ public sealed class SqlCommand : CompoundStep<Unit>
         if (factory.IsFailure)
             return factory.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
 
-        IDbConnection conn = factory.Value.GetDatabaseConnection(
+        using IDbConnection conn = factory.Value.GetDatabaseConnection(
             databaseType.Value,
             connectionString.Value
         );
 
         conn.Open();
 
-        var dbCommand = conn.CreateCommand();
+        using var dbCommand = conn.CreateCommand();
         dbCommand.CommandText = command.Value;
 
         var rowsAffected = dbCommand.ExecuteNonQuery();

@@ -6,7 +6,7 @@ namespace Reductech.EDR.Connectors.Sql.Tests
 
 public static class DbMockHelper
 {
-    public static Mock<IDbConnectionFactory> SetupConnectionFactory(
+    public static Mock<IDbConnectionFactory> SetupConnectionFactoryForQuery(
         MockRepository repository,
         DatabaseType databaseType,
         string connectionString,
@@ -28,6 +28,32 @@ public static class DbMockHelper
         command.SetupSet<string>(x => x.CommandText = expectedQuery);
 
         command.Setup(x => x.ExecuteReader()).Returns(dataReader);
+        command.Setup(x => x.Dispose());
+        connection.Setup(x => x.Dispose());
+
+        return factory;
+    }
+
+    public static Mock<IDbConnectionFactory> SetupConnectionFactoryForCommand(
+        MockRepository repository,
+        DatabaseType databaseType,
+        string connectionString,
+        string expectedQuery,
+        int rowsAffected)
+    {
+        var factory    = repository.Create<IDbConnectionFactory>();
+        var connection = repository.Create<IDbConnection>();
+        var command    = repository.Create<IDbCommand>();
+
+        factory.Setup(f => f.GetDatabaseConnection(databaseType, connectionString))
+            .Returns(connection.Object);
+
+        connection.Setup(f => f.CreateCommand()).Returns(command.Object);
+
+        connection.Setup(x => x.Open());
+        command.SetupSet<string>(x => x.CommandText = expectedQuery);
+
+        command.Setup(x => x.ExecuteNonQuery()).Returns(rowsAffected);
         command.Setup(x => x.Dispose());
         connection.Setup(x => x.Dispose());
 

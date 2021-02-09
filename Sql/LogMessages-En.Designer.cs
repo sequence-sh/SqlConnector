@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Reductech.EDR.Core.Internal.Logging {
+namespace Reductech.EDR.Connectors.Sql {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Reductech.EDR.Core.Internal.Logging {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Reductech.EDR.Core.Internal.Logging.LogMessages-EN", typeof(LogMessages_EN).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Reductech.EDR.Connectors.Sql.LogMessages-EN", typeof(LogMessages_EN).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,101 +61,11 @@ namespace Reductech.EDR.Core.Internal.Logging {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Directory Deleted: {Path}.
+        ///   Looks up a localized string similar to Command executed with {0} rows affected..
         /// </summary>
-        internal static string DirectoryDeleted {
+        internal static string CommandExecuted {
             get {
-                return ResourceManager.GetString("DirectoryDeleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {StepName} Started with Parameters: {Parameters}.
-        /// </summary>
-        internal static string EnterStep {
-            get {
-                return ResourceManager.GetString("EnterStep", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {StepName} Failed with message: {Message}.
-        /// </summary>
-        internal static string ExitStepFailure {
-            get {
-                return ResourceManager.GetString("ExitStepFailure", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {StepName} Completed Successfully with Result: {Result}.
-        /// </summary>
-        internal static string ExitStepSuccess {
-            get {
-                return ResourceManager.GetString("ExitStepSuccess", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to File Deleted: {Path}.
-        /// </summary>
-        internal static string FileDeleted {
-            get {
-                return ResourceManager.GetString("FileDeleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Item to Delete did not Exist: {Path}.
-        /// </summary>
-        internal static string ItemToDeleteDidNotExist {
-            get {
-                return ResourceManager.GetString("ItemToDeleteDidNotExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No path was provided. Returning the Current Directory: {CurrentDirectory}.
-        /// </summary>
-        internal static string NoPathProvided {
-            get {
-                return ResourceManager.GetString("NoPathProvided", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Path {Path} was not fully qualified. Prepending the Current Directory: {CurrentDirectory}.
-        /// </summary>
-        internal static string QualifyingPath {
-            get {
-                return ResourceManager.GetString("QualifyingPath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not remove variable {variable} as it was out of scope..
-        /// </summary>
-        internal static string RemoveVariableOutOfScope {
-            get {
-                return ResourceManager.GetString("RemoveVariableOutOfScope", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Schema violation: {message}.
-        /// </summary>
-        internal static string SchemaViolation {
-            get {
-                return ResourceManager.GetString("SchemaViolation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not set variable {variable} as it was out of scope..
-        /// </summary>
-        internal static string SetVariableOutOfScope {
-            get {
-                return ResourceManager.GetString("SetVariableOutOfScope", resourceCulture);
+                return ResourceManager.GetString("CommandExecuted", resourceCulture);
             }
         }
     }
