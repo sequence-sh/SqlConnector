@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 using Moq;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
@@ -13,23 +14,16 @@ public static class DbMockHelper
         string expectedQuery,
         DataTable dataTable)
     {
-        var factory    = repository.Create<IDbConnectionFactory>();
-        var connection = repository.Create<IDbConnection>();
-        var command    = repository.Create<IDbCommand>();
-
         var dataReader = new DataTableReader(dataTable);
 
-        factory.Setup(f => f.GetDatabaseConnection(databaseType, connectionString))
-            .Returns(connection.Object);
-
-        connection.Setup(f => f.CreateCommand()).Returns(command.Object);
-
-        connection.Setup(x => x.Open());
-        command.SetupSet<string>(x => x.CommandText = expectedQuery);
-
-        command.Setup(x => x.ExecuteReader()).Returns(dataReader);
-        command.Setup(x => x.Dispose());
-        connection.Setup(x => x.Dispose());
+        var factory =
+            SetupFactory(
+                repository,
+                databaseType,
+                connectionString,
+                expectedQuery,
+                cm => cm.Setup(x => x.ExecuteReader()).Returns(dataReader)
+            );
 
         return factory;
     }
@@ -41,21 +35,14 @@ public static class DbMockHelper
         string expectedQuery,
         int rowsAffected)
     {
-        var factory    = repository.Create<IDbConnectionFactory>();
-        var connection = repository.Create<IDbConnection>();
-        var command    = repository.Create<IDbCommand>();
-
-        factory.Setup(f => f.GetDatabaseConnection(databaseType, connectionString))
-            .Returns(connection.Object);
-
-        connection.Setup(f => f.CreateCommand()).Returns(command.Object);
-
-        connection.Setup(x => x.Open());
-        command.SetupSet<string>(x => x.CommandText = expectedQuery);
-
-        command.Setup(x => x.ExecuteNonQuery()).Returns(rowsAffected);
-        command.Setup(x => x.Dispose());
-        connection.Setup(x => x.Dispose());
+        var factory =
+            SetupFactory(
+                repository,
+                databaseType,
+                connectionString,
+                expectedQuery,
+                cm => cm.Setup(x => x.ExecuteNonQuery()).Returns(rowsAffected)
+            );
 
         return factory;
     }
@@ -66,6 +53,25 @@ public static class DbMockHelper
         string connectionString,
         string expectedQuery,
         string result)
+    {
+        var factory =
+            SetupFactory(
+                repository,
+                databaseType,
+                connectionString,
+                expectedQuery,
+                cm => cm.Setup(x => x.ExecuteScalar()).Returns(result)
+            );
+
+        return factory;
+    }
+
+    private static Mock<IDbConnectionFactory> SetupFactory(
+        MockRepository repository,
+        DatabaseType databaseType,
+        string connectionString,
+        string expectedQuery,
+        Action<Mock<IDbCommand>> setupCommand)
     {
         var factory    = repository.Create<IDbConnectionFactory>();
         var connection = repository.Create<IDbConnection>();
@@ -79,7 +85,11 @@ public static class DbMockHelper
         connection.Setup(x => x.Open());
         command.SetupSet<string>(x => x.CommandText = expectedQuery);
 
-        command.Setup(x => x.ExecuteScalar()).Returns(result);
+        command.Setup(x => x.Dispose());
+        connection.Setup(x => x.Dispose());
+
+        setupCommand(command);
+
         command.Setup(x => x.Dispose());
         connection.Setup(x => x.Dispose());
 
