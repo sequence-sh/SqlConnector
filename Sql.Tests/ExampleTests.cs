@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Abstractions;
 using Reductech.EDR.Core.Internal;
+using Reductech.EDR.Core.Internal.Serialization;
 using Reductech.EDR.Core.Steps;
 using Reductech.EDR.Core.TestHarness;
 using Reductech.EDR.Core.Util;
@@ -24,6 +25,36 @@ public partial class ExampleTests
     [Fact(Skip = "skip")]
     //[Fact]
     [Trait("Category", "Integration")]
+    public async Task RunSCLSequence()
+    {
+        const string scl =
+            @"SqlCreateSchemaFromTable 'Data Source=C:\Users\wainw\source\repos\MarkPersonal\ProgressiveAnagram\ProgressiveAnagram\Quotes.db; Version=3;' 'Quotes' 'SQLite'";
+
+        var logger = TestOutputHelper.BuildLogger(LogLevel.Information);
+        var sfs    = StepFactoryStore.CreateUsingReflection(typeof(CreateConnectionString));
+
+        var context = new ExternalContext(
+            ExternalContext.Default.FileSystemHelper,
+            ExternalContext.Default.ExternalProcessRunner,
+            ExternalContext.Default.Console,
+            (DbConnectionFactory.DbConnectionName, DbConnectionFactory.Instance)
+        );
+
+        var runner = new SCLRunner(
+            SCLSettings.EmptySettings,
+            logger,
+            sfs,
+            context
+        );
+
+        var r = await runner.RunSequenceFromTextAsync(scl, CancellationToken.None);
+
+        r.ShouldBeSuccessful(x => x.ToString()!);
+    }
+
+    [Fact(Skip = "skip")]
+    //[Fact]
+    [Trait("Category", "Integration")]
     public async Task RunObjectSequence()
     {
         var step = new Sequence<Unit>()
@@ -39,7 +70,7 @@ public partial class ExampleTests
                                 @"Data Source=C:\Users\wainw\source\repos\MarkPersonal\ProgressiveAnagram\ProgressiveAnagram\Quotes.db; Version=3;"
                             ),
                         Query        = Constant(@"SELECT *  FROM Quotes limit 5"),
-                        DatabaseType = Constant(DatabaseType.SqlLite)
+                        DatabaseType = Constant(DatabaseType.SQLite)
                     },
                     Action = new Log<Entity>
                     {

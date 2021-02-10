@@ -7,14 +7,14 @@
 public enum DatabaseType
 {
     /// <summary>
-    /// Connect to SQL Lite
+    /// Connect to SQLite
     /// </summary>
-    SqlLite,
+    SQLite,
 
     /// <summary>
-    /// Connect to SQL
+    /// Connect to MsSql
     /// </summary>
-    Sql
+    MsSql
 }
 
 }

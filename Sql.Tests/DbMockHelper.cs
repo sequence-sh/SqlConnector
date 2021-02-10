@@ -59,6 +59,32 @@ public static class DbMockHelper
 
         return factory;
     }
+
+    public static Mock<IDbConnectionFactory> SetupConnectionFactoryForScalarQuery(
+        MockRepository repository,
+        DatabaseType databaseType,
+        string connectionString,
+        string expectedQuery,
+        string result)
+    {
+        var factory    = repository.Create<IDbConnectionFactory>();
+        var connection = repository.Create<IDbConnection>();
+        var command    = repository.Create<IDbCommand>();
+
+        factory.Setup(f => f.GetDatabaseConnection(databaseType, connectionString))
+            .Returns(connection.Object);
+
+        connection.Setup(f => f.CreateCommand()).Returns(command.Object);
+
+        connection.Setup(x => x.Open());
+        command.SetupSet<string>(x => x.CommandText = expectedQuery);
+
+        command.Setup(x => x.ExecuteScalar()).Returns(result);
+        command.Setup(x => x.Dispose());
+        connection.Setup(x => x.Dispose());
+
+        return factory;
+    }
 }
 
 }

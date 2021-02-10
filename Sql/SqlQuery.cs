@@ -15,7 +15,7 @@ namespace Reductech.EDR.Connectors.Sql
 {
 
 /// <summary>
-/// Executes a SQL query and returns the result as an entity stream.
+/// Executes a Sql query and returns the result as an entity stream.
 /// </summary>
 public sealed class SqlQuery : CompoundStep<Array<Entity>>
 {
@@ -106,18 +106,18 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
     public IStep<StringStream> ConnectionString { get; set; } = null!;
 
     /// <summary>
-    /// The SQL query to run
+    /// The Sql query to run
     /// </summary>
     [StepProperty(order: 2)]
     [Required]
-    [Alias("SQL")]
+    [Alias("Sql")]
     public IStep<StringStream> Query { get; set; } = null!;
 
-    [StepProperty]
-    [DefaultValueExplanation("SQL")]
+    [StepProperty(3)]
+    [DefaultValueExplanation("Sql")]
     [Alias("DB")]
     public IStep<DatabaseType> DatabaseType { get; set; } =
-        new EnumConstant<DatabaseType>(Sql.DatabaseType.Sql);
+        new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
 
     /// <inheritdoc />
     public override IStepFactory StepFactory => new SimpleStepFactory<SqlQuery, Array<Entity>>();

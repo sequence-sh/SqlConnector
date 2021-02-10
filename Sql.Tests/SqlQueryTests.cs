@@ -9,43 +9,6 @@ using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
 
-public partial class SqlCommandTests : StepTestBase<SqlCommand, Unit>
-{
-    /// <inheritdoc />
-    protected override IEnumerable<StepCase> StepCases
-    {
-        get
-        {
-            yield return new StepCase(
-                "Sql Lite command",
-                new SqlCommand()
-                {
-                    ConnectionString = Constant(@"My Connection String"),
-                    Command          = Constant(@"My Command String"),
-                    DatabaseType     = Constant(DatabaseType.SqlLite)
-                },
-                Unit.Default,
-                "Command executed with 5 rows affected."
-            ).WithContextMock(
-                DbConnectionFactory.DbConnectionName,
-                mr =>
-                {
-                    var factory =
-                        DbMockHelper.SetupConnectionFactoryForCommand(
-                            mr,
-                            DatabaseType.SqlLite,
-                            "My Connection String",
-                            "My Command String",
-                            5
-                        );
-
-                    return factory;
-                }
-            );
-        }
-    }
-}
-
 public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
 {
     /// <inheritdoc />
@@ -68,7 +31,7 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
                             {
                                 ConnectionString = Constant(@"My Connection String"),
                                 Query            = Constant(@"My Query String"),
-                                DatabaseType     = Constant(DatabaseType.SqlLite)
+                                DatabaseType     = Constant(DatabaseType.SQLite)
                             },
                             Action = new Print<Entity>() { Value = GetEntityVariable }
                         },
@@ -87,7 +50,7 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
                             var factory =
                                 DbMockHelper.SetupConnectionFactoryForQuery(
                                     mr,
-                                    DatabaseType.SqlLite,
+                                    DatabaseType.SQLite,
                                     "My Connection String",
                                     "My Query String",
                                     dt

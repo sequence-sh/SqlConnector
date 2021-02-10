@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,33 +8,35 @@ using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
-using Reductech.EDR.Core.Internal.Logging;
 using Reductech.EDR.Core.Util;
+using Entity = Reductech.EDR.Core.Entity;
 
 namespace Reductech.EDR.Connectors.Sql
 {
 
-/// <summary>
-/// Executes a Sql command
-/// </summary>
-public sealed class SqlCommand : CompoundStep<Unit>
+public sealed class SqlInsert : CompoundStep<Unit>
 {
     /// <inheritdoc />
     protected override async Task<Result<Unit, IError>> Run(
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {
-        var command = await
-            Command.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
-
-        if (command.IsFailure)
-            return command.ConvertFailure<Unit>();
-
         var connectionString =
             await ConnectionString.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (connectionString.IsFailure)
             return connectionString.ConvertFailure<Unit>();
+
+        var entities = await
+            Entities.Run(stateMonad, cancellationToken);
+
+        if (entities.IsFailure)
+            return entities.ConvertFailure<Unit>();
+
+        var table = await Table.Run(stateMonad, cancellationToken);
+
+        if (table.IsFailure)
+            return table.ConvertFailure<Unit>();
 
         var databaseType = await DatabaseType.Run(stateMonad, cancellationToken);
 
@@ -46,24 +49,23 @@ public sealed class SqlCommand : CompoundStep<Unit>
         if (factory.IsFailure)
             return factory.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
 
-        using IDbConnection conn = factory.Value.GetDatabaseConnection(
+        IDbConnection conn = factory.Value.GetDatabaseConnection(
             databaseType.Value,
             connectionString.Value
         );
 
-        conn.Open();
+        throw new NotImplementedException();
 
-        using var dbCommand = conn.CreateCommand();
-        dbCommand.CommandText = command.Value;
+        //conn.Open();
 
-        var rowsAffected = dbCommand.ExecuteNonQuery();
+        //var command = conn.CreateCommand();
+        //command.CommandText = entities.Value;
 
-        stateMonad.Logger.LogSituation(
-            LogSituationSql.CommandExecuted,
-            new object[] { rowsAffected }
-        );
+        //var dbReader = command.ExecuteReader();
 
-        return Unit.Default;
+        //var array = GetEntityEnumerable(dbReader, command, conn, cancellationToken).ToSequence();
+
+        //return array;
     }
 
     /// <summary>
@@ -74,21 +76,30 @@ public sealed class SqlCommand : CompoundStep<Unit>
     public IStep<StringStream> ConnectionString { get; set; } = null!;
 
     /// <summary>
-    /// The Sql command to run
+    /// The entities to insert
     /// </summary>
     [StepProperty(order: 2)]
     [Required]
     [Alias("Sql")]
-    public IStep<StringStream> Command { get; set; } = null!;
+    public IStep<Array<Entity>> Entities { get; set; } = null!;
 
-    [StepProperty(3)]
+    /// <summary>
+    /// The table to insert into
+    /// </summary>
+    [StepProperty(order: 3)]
+    [Required]
+    [Alias("Sql")]
+    public IStep<StringStream> Table { get; set; } = null!;
+
+    [StepProperty(4)]
     [DefaultValueExplanation("Sql")]
     [Alias("DB")]
     public IStep<DatabaseType> DatabaseType { get; set; } =
         new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
 
     /// <inheritdoc />
-    public override IStepFactory StepFactory { get; } = new SimpleStepFactory<SqlCommand, Unit>();
+    public override IStepFactory StepFactory { get; } =
+        new SimpleStepFactory<SqlInsert, Unit>();
 }
 
 }
