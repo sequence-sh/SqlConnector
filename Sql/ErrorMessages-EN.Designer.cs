@@ -61,6 +61,15 @@ namespace Reductech.EDR.Connectors.Sql {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not create table: &apos;{0}&apos;.
+        /// </summary>
+        internal static string CouldNotCreateTable {
+            get {
+                return ResourceManager.GetString("CouldNotCreateTable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not get create table: &apos;{0}&apos;.
         /// </summary>
         internal static string CouldNotGetCreateTable {

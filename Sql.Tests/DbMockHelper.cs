@@ -82,8 +82,14 @@ public static class DbMockHelper
 
         connection.Setup(f => f.CreateCommand()).Returns(command.Object);
 
+        var query = Core.TestHarness.SpaceCompressor.CompressSpaces(expectedQuery);
+
         connection.Setup(x => x.Open());
-        command.SetupSet<string>(x => x.CommandText = expectedQuery);
+
+        command.SetupSet<string>(
+            x => x.CommandText =
+                It.Is<string>(y => Core.TestHarness.SpaceCompressor.CompressSpaces(y).Equals(query))
+        );
 
         command.Setup(x => x.Dispose());
         connection.Setup(x => x.Dispose());

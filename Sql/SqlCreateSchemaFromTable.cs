@@ -208,7 +208,6 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
     /// </summary>
     [StepProperty(order: 2)]
     [Required]
-    [Alias("Sql")]
     public IStep<StringStream> Table { get; set; } = null!;
 
     [StepProperty(3)]

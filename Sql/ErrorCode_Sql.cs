@@ -33,6 +33,12 @@ public sealed record ErrorCode_Sql : ErrorCodeBase
     /// </summary>
     public static readonly ErrorCode_Sql CouldNotHandleDataType =
         new(nameof(CouldNotHandleDataType));
+
+    /// <summary>
+    /// Could not create table: '{0}'
+    /// </summary>
+    public static readonly ErrorCode_Sql CouldNotCreateTable =
+        new(nameof(CouldNotCreateTable));
 }
 
 }

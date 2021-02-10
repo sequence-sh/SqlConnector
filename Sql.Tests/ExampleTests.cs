@@ -52,8 +52,8 @@ public partial class ExampleTests
         r.ShouldBeSuccessful(x => x.ToString()!);
     }
 
-    [Fact(Skip = "skip")]
-    //[Fact]
+    //[Fact(Skip = "skip")]
+    [Fact]
     [Trait("Category", "Integration")]
     public async Task RunObjectSequence()
     {
@@ -65,6 +65,14 @@ public partial class ExampleTests
                 {
                     Array = new SqlQuery()
                     {
+                        //ConnectionString = new CreateConnectionString
+                        //{
+                        //    Database = Constant("Introspect"),
+                        //    Server   = Constant("DESKTOP-GPBS4SN"),
+                        //    UserName = Constant("mark"),
+                        //    Password = Constant("vafm4YgWyU5pWxJ")
+                        //},
+
                         ConnectionString =
                             Constant(
                                 @"Data Source=C:\Users\wainw\source\repos\MarkPersonal\ProgressiveAnagram\ProgressiveAnagram\Quotes.db; Version=3;"
