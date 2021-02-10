@@ -86,5 +86,14 @@ namespace Reductech.EDR.Connectors.Sql {
                 return ResourceManager.GetString("CouldNotHandleDataType", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SqlError: &apos;{0}&apos;.
+        /// </summary>
+        internal static string SqlError {
+            get {
+                return ResourceManager.GetString("SqlError", resourceCulture);
+            }
+        }
     }
 }

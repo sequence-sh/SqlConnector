@@ -39,6 +39,11 @@ public sealed record ErrorCode_Sql : ErrorCodeBase
     /// </summary>
     public static readonly ErrorCode_Sql CouldNotCreateTable =
         new(nameof(CouldNotCreateTable));
+
+    /// <summary>
+    /// SqlError: '{0}'
+    /// </summary>
+    public static readonly ErrorCode_Sql SqlError = new(nameof(SqlError));
 }
 
 }

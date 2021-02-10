@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Runtime.CompilerServices;
@@ -57,7 +58,18 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
         var command = conn.CreateCommand();
         command.CommandText = query.Value;
 
-        var dbReader = command.ExecuteReader();
+        IDataReader dbReader;
+
+        try
+        {
+            dbReader = command.ExecuteReader();
+        }
+        catch (Exception e)
+        {
+            return Result.Failure<Array<Entity>, IError>(
+                ErrorCode_Sql.SqlError.ToErrorBuilder(e.Message).WithLocation(this)
+            );
+        }
 
         var array = GetEntityEnumerable(dbReader, command, conn, cancellationToken).ToSequence();
 

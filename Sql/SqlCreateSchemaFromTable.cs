@@ -61,7 +61,18 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         using var command = conn.CreateCommand();
         command.CommandText = queryString;
 
-        var createStatement = command.ExecuteScalar()?.ToString();
+        string createStatement;
+
+        try
+        {
+            createStatement = command.ExecuteScalar()?.ToString()!;
+        }
+        catch (Exception e)
+        {
+            return Result.Failure<Entity, IError>(
+                ErrorCode_Sql.SqlError.ToErrorBuilder(e.Message).WithLocation(this)
+            );
+        }
 
         var parseResult =
             Microsoft.SqlServer.Management.SqlParser.Parser.Parser.Parse(createStatement);

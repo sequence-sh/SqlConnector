@@ -73,7 +73,18 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         using var dbCommand = conn.CreateCommand();
         dbCommand.CommandText = statement.Value;
 
-        var rowsAffected = dbCommand.ExecuteNonQuery();
+        int rowsAffected;
+
+        try
+        {
+            rowsAffected = dbCommand.ExecuteNonQuery();
+        }
+        catch (Exception e)
+        {
+            return Result.Failure<Unit, IError>(
+                ErrorCode_Sql.SqlError.ToErrorBuilder(e.Message).WithLocation(this)
+            );
+        }
 
         stateMonad.Logger.LogSituation(
             LogSituationSql.CommandExecuted,

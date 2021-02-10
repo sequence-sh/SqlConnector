@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,7 +57,18 @@ public sealed class SqlCommand : CompoundStep<Unit>
         using var dbCommand = conn.CreateCommand();
         dbCommand.CommandText = command.Value;
 
-        var rowsAffected = dbCommand.ExecuteNonQuery();
+        int rowsAffected;
+
+        try
+        {
+            rowsAffected = dbCommand.ExecuteNonQuery();
+        }
+        catch (Exception e)
+        {
+            return Result.Failure<Unit, IError>(
+                ErrorCode_Sql.SqlError.ToErrorBuilder(e.Message).WithLocation(this)
+            );
+        }
 
         stateMonad.Logger.LogSituation(
             LogSituationSql.CommandExecuted,
