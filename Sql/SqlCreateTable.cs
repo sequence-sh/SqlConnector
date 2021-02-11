@@ -58,11 +58,6 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         if (factory.IsFailure)
             return factory.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
 
-        var statement = CreateTableQuery(schema.Value);
-
-        if (statement.IsFailure)
-            return statement.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
-
         using IDbConnection conn = factory.Value.GetDatabaseConnection(
             databaseType.Value,
             connectionString.Value
@@ -71,7 +66,11 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         conn.Open();
 
         using var dbCommand = conn.CreateCommand();
-        dbCommand.CommandText = statement.Value;
+
+        var setCommandResult = SetCommand(schema.Value, dbCommand);
+
+        if (setCommandResult.IsFailure)
+            return setCommandResult.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
 
         int rowsAffected;
 
@@ -94,13 +93,13 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         return Unit.Default;
     }
 
-    private Result<string, IErrorBuilder> CreateTableQuery(Schema schema)
+    private Result<Unit, IErrorBuilder> SetCommand(Schema schema, IDbCommand command)
     {
         var sb = new StringBuilder();
 
         var errors = new List<IErrorBuilder>();
 
-        sb.AppendLine($"CREATE TABLE \"{schema.Name}\" (");
+        sb.AppendLine($"CREATE TABLE {schema.Name} (");
 
         if (schema.AllowExtraProperties)
             errors.Add(
@@ -109,7 +108,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
                 )
             );
 
-        var first = true;
+        var index = 0;
 
         foreach (var (column, schemaProperty) in schema.Properties)
         {
@@ -124,23 +123,25 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
 
             if (dataType.IsSuccess && multiplicity.IsSuccess)
             {
-                if (!first)
+                if (index > 0)
                     sb.Append(",");
 
-                first = false;
-
                 sb.AppendLine(
-                    $"\"{column}\" {dataType.Value.ToString().ToUpperInvariant()} {multiplicity.Value}"
+                    $"{column} {dataType.Value.ToString().ToUpperInvariant()} {multiplicity.Value}"
                 );
+
+                index++;
             }
         }
 
         sb.AppendLine(")");
 
-        if (errors.Any())
-            return Result.Failure<string, IErrorBuilder>(ErrorBuilderList.Combine(errors));
+        command.CommandText = sb.ToString();
 
-        return sb.ToString();
+        if (errors.Any())
+            return Result.Failure<Unit, IErrorBuilder>(ErrorBuilderList.Combine(errors));
+
+        return Unit.Default;
 
         static Result<SqlDataType, IErrorBuilder> TryGetDataType(
             SchemaPropertyType schemaPropertyType)

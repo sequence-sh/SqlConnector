@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
+using Reductech.EDR.Core;
 using Reductech.EDR.Core.TestHarness;
 using Reductech.EDR.Core.Util;
-using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
 
-public partial class SqlCommandTests : StepTestBase<SqlCommand, Unit>
+public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
 {
     /// <inheritdoc />
     protected override IEnumerable<StepCase> StepCases
@@ -14,12 +14,13 @@ public partial class SqlCommandTests : StepTestBase<SqlCommand, Unit>
         get
         {
             yield return new StepCase(
-                "Sql Lite command",
-                new SqlCommand()
+                "Insert One Entity",
+                new SqlInsert()
                 {
-                    ConnectionString = Constant(@"My Connection String"),
-                    Command          = Constant(@"My Command String"),
-                    DatabaseType     = Constant(DatabaseType.SQLite)
+                    ConnectionString = StaticHelpers.Constant("My Connection String"),
+                    Table = StaticHelpers.Constant("My Table"),
+                    DatabaseType = StaticHelpers.Constant(DatabaseType.SQLite),
+                    Entities = StaticHelpers.Array(Entity.Create(("Id", 123), ("Name", "Mark")))
                 },
                 Unit.Default,
                 "Command executed with 5 rows affected."
