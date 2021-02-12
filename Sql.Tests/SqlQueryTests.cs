@@ -1,4 +1,5 @@
-﻿using Reductech.EDR.Core;
+﻿using System;
+using Reductech.EDR.Core;
 using Reductech.EDR.Core.TestHarness;
 using System.Collections.Generic;
 using System.Data;
@@ -63,6 +64,43 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
                 ;
 
             yield return stepCase;
+        }
+    }
+
+    /// <inheritdoc />
+    protected override IEnumerable<ErrorCase> ErrorCases
+    {
+        get
+        {
+            yield return new ErrorCase(
+                    "Sql Error",
+                    new SqlQuery()
+                    {
+                        ConnectionString = Constant(@"My Connection String"),
+                        Query            = Constant(@"My Query String"),
+                        DatabaseType     = Constant(DatabaseType.SQLite)
+                    },
+                    ErrorCode_Sql.SqlError.ToErrorBuilder("Test Error")
+                ).WithContextMock(
+                    DbConnectionFactory.DbConnectionName,
+                    mr =>
+                    {
+                        var factory =
+                            DbMockHelper.SetupConnectionFactoryErrorForQuery(
+                                mr,
+                                DatabaseType.SQLite,
+                                "My Connection String",
+                                "My Query String",
+                                new Exception("Test Error")
+                            );
+
+                        return factory;
+                    }
+                )
+                ;
+
+            foreach (var errorCase in base.ErrorCases)
+                yield return errorCase;
         }
     }
 }

@@ -66,6 +66,9 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
         }
         catch (Exception e)
         {
+            command.Dispose();
+            conn.Dispose();
+
             return Result.Failure<Array<Entity>, IError>(
                 ErrorCode_Sql.SqlError.ToErrorBuilder(e.Message).WithLocation(this)
             );

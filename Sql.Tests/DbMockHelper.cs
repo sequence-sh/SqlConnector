@@ -28,6 +28,25 @@ public static class DbMockHelper
         return factory;
     }
 
+    public static Mock<IDbConnectionFactory> SetupConnectionFactoryErrorForQuery(
+        MockRepository repository,
+        DatabaseType databaseType,
+        string connectionString,
+        string expectedQuery,
+        Exception exception)
+    {
+        var factory =
+            SetupFactory(
+                repository,
+                databaseType,
+                connectionString,
+                expectedQuery,
+                cm => cm.Setup(x => x.ExecuteReader()).Throws(exception)
+            );
+
+        return factory;
+    }
+
     public static Mock<IDbConnectionFactory> SetupConnectionFactoryErrorForCommand(
         MockRepository repository,
         DatabaseType databaseType,
