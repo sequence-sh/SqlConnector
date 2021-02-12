@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -11,7 +11,7 @@
 
   <PropertyGroup>
     <PackageId>Reductech.EDR.Connectors.Sql</PackageId>
-    <Title>EDR SQL Database Connector</Title>
+    <Title>EDR 4 Database Connector</Title>
     <Description>Class library for building sequences that interact with SQL databases</Description>
     <Product>EDR</Product>
     <PackageTags>ediscovery;forensics;sql;databases;automation;orchestration;edrm</PackageTags>
@@ -20,19 +20,26 @@
     <RepositoryUrl>https://gitlab.com/reductech/edr/connectors/sql</RepositoryUrl>
     <PackageReleaseNotes>https://gitlab.com/reductech/edr/connectors/sql/-/blob/master/CHANGELOG.md</PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    
+
     <Authors>Reductech</Authors>
     <Company>Reductech</Company>
     <Copyright>Copyright (c) 2021 Reductech Ltd</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.SqlServer.Management.SqlParser" Version="160.20216.14" />
+    <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="Reductech.EDR.Core" Version="0.5.0-a.master.2102091605" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.7" />
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="ErrorMessages-EN.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ErrorMessages-EN.resx</DependentUpon>
+    </Compile>
     <Compile Update="LogMessages-EN.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -41,6 +48,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="ErrorMessages-EN.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ErrorMessages-EN.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="LogMessages-EN.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>LogMessages-EN.Designer.cs</LastGenOutput>

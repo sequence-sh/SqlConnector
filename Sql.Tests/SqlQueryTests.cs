@@ -1,50 +1,15 @@
-﻿using Reductech.EDR.Core;
+﻿using System;
+using Reductech.EDR.Core;
 using Reductech.EDR.Core.TestHarness;
 using System.Collections.Generic;
 using System.Data;
+using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core.Steps;
 using Reductech.EDR.Core.Util;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
-
-public partial class SqlCommandTests : StepTestBase<SqlCommand, Unit>
-{
-    /// <inheritdoc />
-    protected override IEnumerable<StepCase> StepCases
-    {
-        get
-        {
-            yield return new StepCase(
-                "Sql Lite command",
-                new SqlCommand()
-                {
-                    ConnectionString = Constant(@"My Connection String"),
-                    Command          = Constant(@"My Command String"),
-                    DatabaseType     = Constant(DatabaseType.SqlLite)
-                },
-                Unit.Default,
-                "Command executed with 5 rows affected."
-            ).WithContextMock(
-                DbConnectionFactory.DbConnectionName,
-                mr =>
-                {
-                    var factory =
-                        DbMockHelper.SetupConnectionFactoryForCommand(
-                            mr,
-                            DatabaseType.SqlLite,
-                            "My Connection String",
-                            "My Command String",
-                            5
-                        );
-
-                    return factory;
-                }
-            );
-        }
-    }
-}
 
 public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
 {
@@ -68,7 +33,7 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
                             {
                                 ConnectionString = Constant(@"My Connection String"),
                                 Query            = Constant(@"My Query String"),
-                                DatabaseType     = Constant(DatabaseType.SqlLite)
+                                DatabaseType     = Constant(DatabaseType.SQLite)
                             },
                             Action = new Print<Entity>() { Value = GetEntityVariable }
                         },
@@ -87,7 +52,7 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
                             var factory =
                                 DbMockHelper.SetupConnectionFactoryForQuery(
                                     mr,
-                                    DatabaseType.SqlLite,
+                                    DatabaseType.SQLite,
                                     "My Connection String",
                                     "My Query String",
                                     dt
@@ -99,6 +64,43 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
                 ;
 
             yield return stepCase;
+        }
+    }
+
+    /// <inheritdoc />
+    protected override IEnumerable<ErrorCase> ErrorCases
+    {
+        get
+        {
+            yield return new ErrorCase(
+                    "Sql Error",
+                    new SqlQuery()
+                    {
+                        ConnectionString = Constant(@"My Connection String"),
+                        Query            = Constant(@"My Query String"),
+                        DatabaseType     = Constant(DatabaseType.SQLite)
+                    },
+                    ErrorCode_Sql.SqlError.ToErrorBuilder("Test Error")
+                ).WithContextMock(
+                    DbConnectionFactory.DbConnectionName,
+                    mr =>
+                    {
+                        var factory =
+                            DbMockHelper.SetupConnectionFactoryErrorForQuery(
+                                mr,
+                                DatabaseType.SQLite,
+                                "My Connection String",
+                                "My Query String",
+                                new Exception("Test Error")
+                            );
+
+                        return factory;
+                    }
+                )
+                ;
+
+            foreach (var errorCase in base.ErrorCases)
+                yield return errorCase;
         }
     }
 }

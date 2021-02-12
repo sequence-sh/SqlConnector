@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,11 +11,11 @@ using Reductech.EDR.Core.Internal.Errors;
 using Reductech.EDR.Core.Internal.Logging;
 using Reductech.EDR.Core.Util;
 
-namespace Reductech.EDR.Connectors.Sql
+namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
 /// <summary>
-/// Executes a SQL command
+/// Executes a Sql command
 /// </summary>
 public sealed class SqlCommand : CompoundStep<Unit>
 {
@@ -56,7 +57,18 @@ public sealed class SqlCommand : CompoundStep<Unit>
         using var dbCommand = conn.CreateCommand();
         dbCommand.CommandText = command.Value;
 
-        var rowsAffected = dbCommand.ExecuteNonQuery();
+        int rowsAffected;
+
+        try
+        {
+            rowsAffected = dbCommand.ExecuteNonQuery();
+        }
+        catch (Exception e)
+        {
+            return Result.Failure<Unit, IError>(
+                ErrorCode_Sql.SqlError.ToErrorBuilder(e.Message).WithLocation(this)
+            );
+        }
 
         stateMonad.Logger.LogSituation(
             LogSituationSql.CommandExecuted,
@@ -74,18 +86,21 @@ public sealed class SqlCommand : CompoundStep<Unit>
     public IStep<StringStream> ConnectionString { get; set; } = null!;
 
     /// <summary>
-    /// The SQL command to run
+    /// The Sql command to run
     /// </summary>
     [StepProperty(order: 2)]
     [Required]
     [Alias("SQL")]
     public IStep<StringStream> Command { get; set; } = null!;
 
-    [StepProperty]
+    /// <summary>
+    /// The Database Type to connect to
+    /// </summary>
+    [StepProperty(3)]
     [DefaultValueExplanation("SQL")]
     [Alias("DB")]
     public IStep<DatabaseType> DatabaseType { get; set; } =
-        new EnumConstant<DatabaseType>(Sql.DatabaseType.Sql);
+        new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } = new SimpleStepFactory<SqlCommand, Unit>();

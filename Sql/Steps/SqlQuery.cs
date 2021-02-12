@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using CSharpFunctionalExtensions;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
-using CSharpFunctionalExtensions;
 using Entity = Reductech.EDR.Core.Entity;
 
-namespace Reductech.EDR.Connectors.Sql
+namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
 /// <summary>
@@ -57,45 +56,26 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
         var command = conn.CreateCommand();
         command.CommandText = query.Value;
 
-        var dbReader = command.ExecuteReader();
+        IDataReader dbReader;
 
-        var array = GetEntityEnumerable(dbReader, command, conn, cancellationToken).ToSequence();
-
-        return array;
-    }
-
-    static async IAsyncEnumerable<Entity> GetEntityEnumerable(
-        IDataReader reader,
-        IDbCommand command,
-        IDbConnection connection,
-        [EnumeratorCancellation] CancellationToken cancellation)
-    {
         try
         {
-            var row = new object[reader.FieldCount];
-
-            //TODO async properly
-
-            while (!reader.IsClosed && reader.Read() && !cancellation.IsCancellationRequested)
-            {
-                reader.GetValues(row);
-                var props = new List<(string, object?)>(row.Length);
-
-                for (var col = 0; col < row.Length; col++)
-                    props.Add((reader.GetName(col), row[col]));
-
-                yield return Entity.Create(props.ToArray());
-            }
+            dbReader = command.ExecuteReader();
         }
-        finally
+        catch (Exception e)
         {
-            reader.Close();
-            reader.Dispose();
             command.Dispose();
-            connection.Dispose();
+            conn.Dispose();
+
+            return Result.Failure<Array<Entity>, IError>(
+                ErrorCode_Sql.SqlError.ToErrorBuilder(e.Message).WithLocation(this)
+            );
         }
 
-        await ValueTask.CompletedTask;
+        var array = Extensions.GetEntityEnumerable(dbReader, command, conn, cancellationToken)
+            .ToSequence();
+
+        return array;
     }
 
     /// <summary>
@@ -106,18 +86,21 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
     public IStep<StringStream> ConnectionString { get; set; } = null!;
 
     /// <summary>
-    /// The SQL query to run
+    /// The Sql query to run
     /// </summary>
     [StepProperty(order: 2)]
     [Required]
-    [Alias("SQL")]
+    [Alias("Sql")]
     public IStep<StringStream> Query { get; set; } = null!;
 
-    [StepProperty]
-    [DefaultValueExplanation("SQL")]
+    /// <summary>
+    /// The Database Type to connect to
+    /// </summary>
+    [StepProperty(3)]
+    [DefaultValueExplanation("Sql")]
     [Alias("DB")]
     public IStep<DatabaseType> DatabaseType { get; set; } =
-        new EnumConstant<DatabaseType>(Sql.DatabaseType.Sql);
+        new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
 
     /// <inheritdoc />
     public override IStepFactory StepFactory => new SimpleStepFactory<SqlQuery, Array<Entity>>();

@@ -18,8 +18,8 @@ public class DbConnectionFactory : IDbConnectionFactory
     {
         return databaseType switch
         {
-            DatabaseType.SqlLite => new SQLiteConnection(connectionString),
-            DatabaseType.Sql => new SqlConnection(connectionString),
+            DatabaseType.SQLite => new SQLiteConnection(connectionString),
+            DatabaseType.MsSql => new SqlConnection(connectionString),
             _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
         };
     }

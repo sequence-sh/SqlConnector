@@ -7,9 +7,12 @@ using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
 
-namespace Reductech.EDR.Connectors.Sql
+namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
+/// <summary>
+/// Creates an MSSQL connection string
+/// </summary>
 public sealed class CreateConnectionString : CompoundStep<StringStream>
 {
     /// <inheritdoc />
@@ -75,7 +78,7 @@ public sealed class CreateConnectionString : CompoundStep<StringStream>
         }
         else
         {
-            //cs += "IntegratedSecurity=true;";
+            cs += "Integrated Security=true;";
         }
 
         return new StringStream(cs);
