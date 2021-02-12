@@ -2,6 +2,7 @@
 using Reductech.EDR.Core.TestHarness;
 using System.Collections.Generic;
 using System.Data;
+using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core.Steps;
 using Reductech.EDR.Core.Util;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;

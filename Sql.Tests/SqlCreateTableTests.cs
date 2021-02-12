@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core.Entities;
 using Reductech.EDR.Core.TestHarness;
 using Reductech.EDR.Core.Util;

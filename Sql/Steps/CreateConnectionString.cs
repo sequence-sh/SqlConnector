@@ -7,7 +7,7 @@ using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
 
-namespace Reductech.EDR.Connectors.Sql
+namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
 public sealed class CreateConnectionString : CompoundStep<StringStream>

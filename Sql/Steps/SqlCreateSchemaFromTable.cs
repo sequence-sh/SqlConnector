@@ -15,7 +15,7 @@ using Reductech.EDR.Core.Util;
 using Entity = Reductech.EDR.Core.Entity;
 using SqlDataType = Microsoft.SqlServer.Management.SqlParser.Metadata.SqlDataType;
 
-namespace Reductech.EDR.Connectors.Sql
+namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
 public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>

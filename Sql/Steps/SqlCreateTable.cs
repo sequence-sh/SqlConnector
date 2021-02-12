@@ -17,7 +17,7 @@ using Reductech.EDR.Core.Internal.Logging;
 using Reductech.EDR.Core.Util;
 using Entity = Reductech.EDR.Core.Entity;
 
-namespace Reductech.EDR.Connectors.Sql
+namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
 /// <summary>

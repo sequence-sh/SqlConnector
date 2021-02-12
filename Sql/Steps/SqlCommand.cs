@@ -11,7 +11,7 @@ using Reductech.EDR.Core.Internal.Errors;
 using Reductech.EDR.Core.Internal.Logging;
 using Reductech.EDR.Core.Util;
 
-namespace Reductech.EDR.Connectors.Sql
+namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
 /// <summary>
