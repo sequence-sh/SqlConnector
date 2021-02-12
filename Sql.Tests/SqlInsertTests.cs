@@ -133,11 +133,8 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                         },
                         FinalStep = new DoNothing()
                     },
-                    Unit.Default,
-                    "Command executed with 0 rows affected.",
-                    "Command executed with 0 rows affected.",
-                    "Command executed with 1 rows affected."
-                )
+                    Unit.Default
+                ) { IgnoreLoggedValues = true }
                 .WithContext(
                     DbConnectionFactory.DbConnectionName,
                     DbConnectionFactory.Instance
@@ -173,19 +170,19 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                         },
                         FinalStep = new DoNothing()
                     },
-                    Unit.Default,
-                    "Command executed with 0 rows affected.",
-                    "Command executed with 0 rows affected.",
-                    "Command executed with 349 rows affected.",
-                    "Command executed with 349 rows affected.",
-                    "Command executed with 349 rows affected.",
-                    "Command executed with 349 rows affected.",
-                    "Command executed with 349 rows affected.",
-                    "Command executed with 349 rows affected.",
-                    "Command executed with 349 rows affected.",
-                    "Command executed with 349 rows affected.",
-                    "Command executed with 208 rows affected."
-                )
+                    Unit.Default
+                    //"Command executed with 0 rows affected.",
+                    //"Command executed with 0 rows affected.",
+                    //"Command executed with 349 rows affected.",
+                    //"Command executed with 349 rows affected.",
+                    //"Command executed with 349 rows affected.",
+                    //"Command executed with 349 rows affected.",
+                    //"Command executed with 349 rows affected.",
+                    //"Command executed with 349 rows affected.",
+                    //"Command executed with 349 rows affected.",
+                    //"Command executed with 349 rows affected.",
+                    //"Command executed with 208 rows affected."
+                ) { IgnoreLoggedValues = true }
                 .WithContext(
                     DbConnectionFactory.DbConnectionName,
                     DbConnectionFactory.Instance
