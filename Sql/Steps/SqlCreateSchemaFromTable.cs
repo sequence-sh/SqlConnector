@@ -18,6 +18,9 @@ using SqlDataType = Microsoft.SqlServer.Management.SqlParser.Metadata.SqlDataTyp
 namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
+/// <summary>
+/// Creates a Schema entity from a SQL table
+/// </summary>
 public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
 {
     /// <inheritdoc />
@@ -221,6 +224,9 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
     [Required]
     public IStep<StringStream> Table { get; set; } = null!;
 
+    /// <summary>
+    /// The Database Type to connect to
+    /// </summary>
     [StepProperty(3)]
     [DefaultValueExplanation("Sql")]
     [Alias("DB")]

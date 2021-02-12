@@ -10,6 +10,9 @@ using Reductech.EDR.Core.Internal.Errors;
 namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
+/// <summary>
+/// Creates an MSSQL connection string
+/// </summary>
 public sealed class CreateConnectionString : CompoundStep<StringStream>
 {
     /// <inheritdoc />

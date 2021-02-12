@@ -21,6 +21,9 @@ using Entity = Reductech.EDR.Core.Entity;
 namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
+/// <summary>
+/// Inserts data into a SQL table
+/// </summary>
 public sealed class SqlInsert : CompoundStep<Unit>
 {
     /// <inheritdoc />
@@ -246,6 +249,9 @@ public sealed class SqlInsert : CompoundStep<Unit>
     [Required]
     public IStep<Entity> Schema { get; set; } = null!;
 
+    /// <summary>
+    /// The Database Type to connect to
+    /// </summary>
     [StepProperty(4)]
     [DefaultValueExplanation("Sql")]
     [Alias("DB")]

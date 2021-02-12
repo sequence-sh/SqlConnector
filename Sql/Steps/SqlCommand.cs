@@ -90,11 +90,14 @@ public sealed class SqlCommand : CompoundStep<Unit>
     /// </summary>
     [StepProperty(order: 2)]
     [Required]
-    [Alias("Sql")]
+    [Alias("SQL")]
     public IStep<StringStream> Command { get; set; } = null!;
 
+    /// <summary>
+    /// The Database Type to connect to
+    /// </summary>
     [StepProperty(3)]
-    [DefaultValueExplanation("Sql")]
+    [DefaultValueExplanation("SQL")]
     [Alias("DB")]
     public IStep<DatabaseType> DatabaseType { get; set; } =
         new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);

@@ -21,7 +21,7 @@ namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
 /// <summary>
-/// Create a sql table from a given schema
+/// Create a SQL table from a given schema
 /// </summary>
 public sealed class SqlCreateTable : CompoundStep<Unit>
 {
@@ -207,8 +207,11 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
     [Required]
     public IStep<Entity> Schema { get; set; } = null!;
 
+    /// <summary>
+    /// The Database Type to connect to
+    /// </summary>
     [StepProperty(3)]
-    [DefaultValueExplanation("Sql")]
+    [DefaultValueExplanation("SQL")]
     [Alias("DB")]
     public IStep<DatabaseType> DatabaseType { get; set; } =
         new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);

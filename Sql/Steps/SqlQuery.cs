@@ -16,7 +16,7 @@ namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
 /// <summary>
-/// Executes a Sql query and returns the result as an entity stream.
+/// Executes a SQL query and returns the result as an entity stream.
 /// </summary>
 public sealed class SqlQuery : CompoundStep<Array<Entity>>
 {
@@ -125,6 +125,9 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
     [Alias("Sql")]
     public IStep<StringStream> Query { get; set; } = null!;
 
+    /// <summary>
+    /// The Database Type to connect to
+    /// </summary>
     [StepProperty(3)]
     [DefaultValueExplanation("Sql")]
     [Alias("DB")]
