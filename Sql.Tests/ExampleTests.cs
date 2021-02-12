@@ -54,8 +54,8 @@ public partial class ExampleTests
         r.ShouldBeSuccessful(x => x.ToString()!);
     }
 
-    //[Fact(Skip = "skip")]
-    [Fact]
+    [Fact(Skip = "skip")]
+    //[Fact]
     [Trait("Category", "Integration")]
     public async Task RunObjectSequence()
     {
@@ -159,7 +159,7 @@ public partial class ExampleTests
                 {
                     ConnectionString = Constant(connectionString),
                     DatabaseType     = Constant(DatabaseType.SQLite),
-                    Entity           = Constant(schema.ConvertToEntity())
+                    Schema           = Constant(schema.ConvertToEntity())
                 },
                 new SqlInsert()
                 {

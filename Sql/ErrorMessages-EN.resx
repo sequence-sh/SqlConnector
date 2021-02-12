@@ -126,6 +126,9 @@
   <data name="CouldNotHandleDataType" xml:space="preserve">
     <value>Could not handle data type '{0}' in column '{1}'</value>
   </data>
+  <data name="InvalidName" xml:space="preserve">
+    <value>Invalid Name for a SQL object: '{0}'</value>
+  </data>
   <data name="SqlError" xml:space="preserve">
     <value>SqlError: '{0}'</value>
   </data>

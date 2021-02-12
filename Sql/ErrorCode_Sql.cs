@@ -44,6 +44,11 @@ public sealed record ErrorCode_Sql : ErrorCodeBase
     /// SqlError: '{0}'
     /// </summary>
     public static readonly ErrorCode_Sql SqlError = new(nameof(SqlError));
+
+    /// <summary>
+    /// Invalid Name for a SQL object: '{0}'
+    /// </summary>
+    public static readonly ErrorCode_Sql InvalidName = new(nameof(InvalidName));
 }
 
 }

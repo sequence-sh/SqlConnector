@@ -41,6 +41,11 @@ public sealed class SqlInsert : CompoundStep<Unit>
         if (entities.IsFailure)
             return entities.ConvertFailure<Unit>();
 
+        var databaseType = await DatabaseType.Run(stateMonad, cancellationToken);
+
+        if (databaseType.IsFailure)
+            return databaseType.ConvertFailure<Unit>();
+
         var schema = await Schema.Run(stateMonad, cancellationToken)
             .Bind(
                 x => Core.Entities.Schema.TryCreateFromEntity(x).MapError(e => e.WithLocation(this))
@@ -48,11 +53,6 @@ public sealed class SqlInsert : CompoundStep<Unit>
 
         if (schema.IsFailure)
             return schema.ConvertFailure<Unit>();
-
-        var databaseType = await DatabaseType.Run(stateMonad, cancellationToken);
-
-        if (databaseType.IsFailure)
-            return databaseType.ConvertFailure<Unit>();
 
         var factory = stateMonad.ExternalContext
             .TryGetContext<IDbConnectionFactory>(DbConnectionFactory.DbConnectionName);
@@ -116,7 +116,12 @@ public sealed class SqlInsert : CompoundStep<Unit>
         var stringBuilder = new StringBuilder();
         var errors        = new List<IErrorBuilder>();
 
-        stringBuilder.Append($"INSERT INTO {schema.Name} (");
+        var tableName = Extensions.CheckSqlObjectName(schema.Name);
+
+        if (tableName.IsFailure)
+            return tableName.ConvertFailure<Unit>();
+
+        stringBuilder.Append($"INSERT INTO {tableName.Value} (");
         var first = true;
 
         foreach (var (name, _) in schema.Properties)
@@ -124,8 +129,15 @@ public sealed class SqlInsert : CompoundStep<Unit>
             if (!first)
                 stringBuilder.Append(", ");
 
-            stringBuilder.Append($"{name}");
-            first = false;
+            var columnName = Extensions.CheckSqlObjectName(name);
+
+            if (columnName.IsFailure)
+                errors.Add(columnName.Error);
+            else
+            {
+                stringBuilder.Append($"{columnName.Value}");
+                first = false;
+            }
         }
 
         stringBuilder.AppendLine(")");

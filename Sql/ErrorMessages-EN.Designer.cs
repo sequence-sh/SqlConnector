@@ -88,6 +88,15 @@ namespace Reductech.EDR.Connectors.Sql {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid Name for a SQL object: &apos;{0}&apos;.
+        /// </summary>
+        internal static string InvalidName {
+            get {
+                return ResourceManager.GetString("InvalidName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SqlError: &apos;{0}&apos;.
         /// </summary>
         internal static string SqlError {

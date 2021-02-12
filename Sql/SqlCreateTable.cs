@@ -37,7 +37,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
             return connectionString.ConvertFailure<Unit>();
 
         var entity =
-            await Entity.Run(stateMonad, cancellationToken);
+            await Schema.Run(stateMonad, cancellationToken);
 
         if (entity.IsFailure)
             return entity.ConvertFailure<Unit>();
@@ -47,7 +47,8 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         if (databaseType.IsFailure)
             return databaseType.ConvertFailure<Unit>();
 
-        var schema = Schema.TryCreateFromEntity(entity.Value).MapError(x => x.WithLocation(this));
+        var schema = Core.Entities.Schema.TryCreateFromEntity(entity.Value)
+            .MapError(x => x.WithLocation(this));
 
         if (schema.IsFailure)
             return schema.ConvertFailure<Unit>();
@@ -99,7 +100,12 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
 
         var errors = new List<IErrorBuilder>();
 
-        sb.AppendLine($"CREATE TABLE {schema.Name} (");
+        var tableName = Extensions.CheckSqlObjectName(schema.Name);
+
+        if (tableName.IsFailure)
+            errors.Add(tableName.Error);
+        else
+            sb.AppendLine($"CREATE TABLE \"{tableName.Value}\" (");
 
         if (schema.AllowExtraProperties)
             errors.Add(
@@ -126,9 +132,14 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
                 if (index > 0)
                     sb.Append(",");
 
-                sb.AppendLine(
-                    $"{column} {dataType.Value.ToString().ToUpperInvariant()} {multiplicity.Value}"
-                );
+                var columnName = Extensions.CheckSqlObjectName(column);
+
+                if (columnName.IsFailure)
+                    errors.Add(columnName.Error);
+                else
+                    sb.AppendLine(
+                        $"\"{columnName.Value}\" {dataType.Value.ToString().ToUpperInvariant()} {multiplicity.Value}"
+                    );
 
                 index++;
             }
@@ -194,7 +205,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
     /// </summary>
     [StepProperty(order: 2)]
     [Required]
-    public IStep<Entity> Entity { get; set; } = null!;
+    public IStep<Entity> Schema { get; set; } = null!;
 
     [StepProperty(3)]
     [DefaultValueExplanation("Sql")]

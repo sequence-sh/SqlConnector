@@ -19,7 +19,7 @@ public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
                         {
                             ConnectionString = StaticHelpers.Constant("MyConnectionString"),
                             DatabaseType     = StaticHelpers.Constant(DatabaseType.SQLite),
-                            Entity = StaticHelpers.Constant(
+                            Schema = StaticHelpers.Constant(
                                 new Schema()
                                 {
                                     Name                 = "MyTable",
