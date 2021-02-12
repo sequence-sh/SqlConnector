@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using Moq;
 
@@ -24,6 +23,25 @@ public static class DbMockHelper
                 connectionString,
                 expectedQuery,
                 cm => cm.Setup(x => x.ExecuteReader()).Returns(dataReader)
+            );
+
+        return factory;
+    }
+
+    public static Mock<IDbConnectionFactory> SetupConnectionFactoryErrorForCommand(
+        MockRepository repository,
+        DatabaseType databaseType,
+        string connectionString,
+        string expectedQuery,
+        Exception exception)
+    {
+        var factory =
+            SetupFactory(
+                repository,
+                databaseType,
+                connectionString,
+                expectedQuery,
+                cm => cm.Setup(x => x.ExecuteNonQuery()).Throws(exception)
             );
 
         return factory;
@@ -66,59 +84,6 @@ public static class DbMockHelper
 
         return factory;
     }
-
-    /*
-    public static Mock<IDbConnectionFactory> SetupConnectionFactoryForInsert(
-        MockRepository repository,
-        DatabaseType databaseType,
-        string connectionString,
-        params (string queryText, Dictionary<string, (DbType dbType, object? value)> parameters)[]
-            commands)
-    {
-        var factory    = repository.Create<IDbConnectionFactory>();
-        var connection = repository.Create<IDbConnection>();
-
-        factory.Setup(f => f.GetDatabaseConnection(databaseType, connectionString))
-            .Returns(connection.Object);
-
-        connection.Setup(x => x.Open());
-
-        foreach (var (queryText, parameters) in commands)
-        {
-            var command = repository.Create<IDbCommand>(MockBehavior.Loose);
-            connection.Setup(f => f.CreateCommand()).Returns(command.Object);
-
-            var query = Core.TestHarness.SpaceCompressor.CompressSpaces(queryText);
-
-            command.SetupSet<string>(
-                x => x.CommandText =
-                    It.Is<string>(
-                        y => Core.TestHarness.SpaceCompressor.CompressSpaces(y).Equals(query)
-                    )
-            );
-
-            command.Setup(x => x.Dispose());
-            connection.Setup(x => x.Dispose());
-
-            foreach (var (key, (dbType, value)) in parameters)
-            {
-                command.Setup(
-                    c => c.AddParameter(
-                        key,
-                        value,
-                        dbType
-                    )
-                );
-            }
-
-            command.Setup(x => x.Dispose());
-        }
-
-        connection.Setup(x => x.Dispose());
-
-        return factory;
-    }
-    */
 
     private static Mock<IDbConnectionFactory> SetupFactory(
         MockRepository repository,
