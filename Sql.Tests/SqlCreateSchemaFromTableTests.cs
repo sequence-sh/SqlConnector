@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Data;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Entities;
@@ -15,38 +16,40 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
     {
         get
         {
+            var expectedSchema = new Schema()
+            {
+                AllowExtraProperties = false,
+                Name                 = "MyTable",
+                Properties = new Dictionary<string, SchemaProperty>()
+                {
+                    {
+                        "Id",
+                        new SchemaProperty()
+                        {
+                            Type         = SchemaPropertyType.Integer,
+                            Multiplicity = Multiplicity.ExactlyOne
+                        }
+                    },
+                    {
+                        "Name",
+                        new SchemaProperty()
+                        {
+                            Type         = SchemaPropertyType.String,
+                            Multiplicity = Multiplicity.UpToOne
+                        }
+                    }
+                }
+            };
+
             yield return new StepCase(
-                    "Simple case",
+                    "Simple SQLite case",
                     new SqlCreateSchemaFromTable()
                     {
                         ConnectionString = Constant("MyConnectionString"),
                         Table            = Constant("MyTable"),
                         DatabaseType     = Constant(DatabaseType.SQLite),
                     },
-                    new Schema()
-                        {
-                            AllowExtraProperties = false,
-                            Name                 = "MyTable",
-                            Properties = new Dictionary<string, SchemaProperty>()
-                            {
-                                {
-                                    "Id",
-                                    new SchemaProperty()
-                                    {
-                                        Type         = SchemaPropertyType.Integer,
-                                        Multiplicity = Multiplicity.ExactlyOne
-                                    }
-                                },
-                                {
-                                    "Name",
-                                    new SchemaProperty()
-                                    {
-                                        Type         = SchemaPropertyType.String,
-                                        Multiplicity = Multiplicity.UpToOne
-                                    }
-                                }
-                            }
-                        }
+                    expectedSchema
                         .ConvertToEntity()
                 )
                 .WithContextMock(
@@ -56,11 +59,42 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                             mr,
                             DatabaseType.SQLite,
                             "MyConnectionString",
-                            "SELECT sql FROM sqlite_master WHERE name = 'MyTable';",
+                            "SELECT sql FROM SQLite_master WHERE name = 'MyTable';",
                             @"CREATE TABLE ""MyTable"" (
     ""Id"" INT NOT NULL PRIMARY KEY,
     ""Name"" TEXT NULL
 )"
+                        )
+                );
+
+            DataTable dt = new();
+            dt.Clear();
+            dt.Columns.Add("COLUMN_NAME");
+            dt.Columns.Add("IS_NULLABLE");
+            dt.Columns.Add("DATA_TYPE");
+            dt.Rows.Add("Id",   "NO",  "int");
+            dt.Rows.Add("Name", "YES", "nvarchar");
+
+            yield return new StepCase(
+                    "Simple MsSql case",
+                    new SqlCreateSchemaFromTable()
+                    {
+                        ConnectionString = Constant("MyConnectionString"),
+                        Table            = Constant("MyTable"),
+                        DatabaseType     = Constant(DatabaseType.MsSql),
+                    },
+                    expectedSchema
+                        .ConvertToEntity()
+                )
+                .WithContextMock(
+                    DbConnectionFactory.DbConnectionName,
+                    mr =>
+                        DbMockHelper.SetupConnectionFactoryForQuery(
+                            mr,
+                            DatabaseType.MsSql,
+                            "MyConnectionString",
+                            "SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE  from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = 'MyTable'",
+                            dt
                         )
                 );
         }
@@ -87,7 +121,7 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                         mr,
                         DatabaseType.SQLite,
                         "MyConnectionString",
-                        "SELECT sql FROM sqlite_master WHERE name = 'MyTable';",
+                        "SELECT sql FROM SQLite_master WHERE name = 'MyTable';",
                         "This is not a create table statement"
                     )
             );

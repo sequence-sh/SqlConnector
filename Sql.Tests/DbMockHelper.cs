@@ -104,6 +104,21 @@ public static class DbMockHelper
         return factory;
     }
 
+    public static Mock<IDbConnectionFactory> SetupFactoryLoose(
+        MockRepository repository,
+        DatabaseType databaseType,
+        string connectionString)
+    {
+        var factory    = repository.Create<IDbConnectionFactory>();
+        var connection = repository.Create<IDbConnection>();
+        var command    = repository.Create<IDbCommand>();
+
+        command.Setup(x => x.Dispose());
+        connection.Setup(x => x.Dispose());
+
+        return factory;
+    }
+
     private static Mock<IDbConnectionFactory> SetupFactory(
         MockRepository repository,
         DatabaseType databaseType,

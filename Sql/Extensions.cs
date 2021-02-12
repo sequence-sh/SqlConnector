@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Reductech.EDR.Core.Internal.Errors;
 
@@ -53,6 +56,40 @@ public static class Extensions
 
             return false;
         }
+    }
+
+    public static async IAsyncEnumerable<Core.Entity> GetEntityEnumerable(
+        IDataReader reader,
+        IDbCommand command,
+        IDbConnection connection,
+        [EnumeratorCancellation] CancellationToken cancellation)
+    {
+        try
+        {
+            var row = new object[reader.FieldCount];
+
+            //TODO async properly
+
+            while (!reader.IsClosed && reader.Read() && !cancellation.IsCancellationRequested)
+            {
+                reader.GetValues(row);
+                var props = new List<(string, object?)>(row.Length);
+
+                for (var col = 0; col < row.Length; col++)
+                    props.Add((reader.GetName(col), row[col]));
+
+                yield return Core.Entity.Create(props.ToArray());
+            }
+        }
+        finally
+        {
+            reader.Close();
+            reader.Dispose();
+            command.Dispose();
+            connection.Dispose();
+        }
+
+        await ValueTask.CompletedTask;
     }
 
     public static void AddParameter(

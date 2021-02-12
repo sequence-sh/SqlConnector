@@ -78,7 +78,7 @@ public sealed class CreateConnectionString : CompoundStep<StringStream>
         }
         else
         {
-            //cs += "IntegratedSecurity=true;";
+            cs += "Integrated Security=true;";
         }
 
         return new StringStream(cs);

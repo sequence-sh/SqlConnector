@@ -17,15 +17,24 @@ public partial class
         get
         {
             yield return new StepCase(
-                "Create connection string",
-                new CreateConnectionString()
+                "Create connection string with username and password",
+                new CreateConnectionString
                 {
-                    Database = StaticHelpers.Constant("Database"),
-                    Password = StaticHelpers.Constant("Password"),
-                    Server   = StaticHelpers.Constant("Server"),
-                    UserName = StaticHelpers.Constant("UserName"),
+                    Database = Constant("Database"),
+                    Password = Constant("Password"),
+                    Server   = Constant("Server"),
+                    UserName = Constant("UserName"),
                 },
                 "Server=Server;Database=Database;User Id=UserName;Password=Password;"
+            );
+
+            yield return new StepCase(
+                "Create connection string with integrated security",
+                new CreateConnectionString
+                {
+                    Database = Constant("Database"), Server = Constant("Server"),
+                },
+                "Server=Server;Database=Database;Integrated Security=true;"
             );
         }
     }
@@ -37,7 +46,7 @@ public partial class
         {
             yield return new ErrorCase(
                 "Missing password",
-                new CreateConnectionString()
+                new CreateConnectionString
                 {
                     Server   = Constant("Server"),
                     Database = Constant("Database"),
@@ -49,7 +58,7 @@ public partial class
 
             yield return new ErrorCase(
                 "Missing username",
-                new CreateConnectionString()
+                new CreateConnectionString
                 {
                     Server   = Constant("Server"),
                     Database = Constant("Database"),

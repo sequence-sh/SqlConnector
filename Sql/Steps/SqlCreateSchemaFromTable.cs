@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,9 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         if (connectionString.IsFailure)
             return connectionString.ConvertFailure<Entity>();
 
-        var table = await Table.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
+        var table = await Table.Run(stateMonad, cancellationToken)
+            .Map(x => x.GetStringAsync())
+            .Bind(x => Extensions.CheckSqlObjectName(x).MapError(e => e.WithLocation(this)));
 
         if (table.IsFailure)
             return table.ConvertFailure<Entity>();
@@ -59,38 +62,151 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
 
         conn.Open();
 
-        var queryString = $"SELECT sql FROM sqlite_master WHERE name = '{table.Value}';";
+        var queryString = GetQuery(table.Value, databaseType.Value);
 
         using var command = conn.CreateCommand();
         command.CommandText = queryString;
 
-        string createStatement;
+        var r = Convert(command, table.Value, databaseType.Value)
+            .MapError(x => x.WithLocation(this));
 
-        try
+        return r;
+    }
+
+    private static Result<Entity, IErrorBuilder> Convert(
+        IDbCommand command,
+        string tableName,
+        DatabaseType databaseType)
+    {
+        return databaseType switch
         {
-            createStatement = command.ExecuteScalar()?.ToString()!;
-        }
-        catch (Exception e)
+            Sql.DatabaseType.SQLite => ConvertSQLite(command, tableName),
+            Sql.DatabaseType.MsSql => ConvertMsSql(command, tableName),
+            _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
+        };
+
+        static Result<Entity, IErrorBuilder> ConvertMsSql(IDbCommand command, string tableName)
         {
-            return Result.Failure<Entity, IError>(
-                ErrorCode_Sql.SqlError.ToErrorBuilder(e.Message).WithLocation(this)
-            );
+            IDataReader reader;
+
+            try
+            {
+                reader = command.ExecuteReader();
+            }
+            catch (Exception e)
+            {
+                return Result.Failure<Entity, IErrorBuilder>(
+                    ErrorCode_Sql.SqlError.ToErrorBuilder(e.Message)
+                );
+            }
+
+            var properties = new Dictionary<string, SchemaProperty>();
+
+            try
+            {
+                var row = new object[reader.FieldCount];
+
+                while (!reader.IsClosed && reader.Read())
+                {
+                    SchemaProperty schemaProperty = new();
+                    string         propertyName   = "";
+
+                    reader.GetValues(row);
+
+                    for (var col = 0; col < row.Length; col++)
+                    {
+                        var name  = reader.GetName(col);
+                        var value = row[col].ToString()!;
+
+                        switch (name)
+                        {
+                            case "COLUMN_NAME":
+                                propertyName = value;
+                                break;
+                            case "IS_NULLABLE":
+                            {
+                                schemaProperty.Multiplicity = value
+                                    switch
+                                    {
+                                        "YES" => Multiplicity.UpToOne,
+                                        "NO"  => Multiplicity.ExactlyOne,
+                                        _     => throw new ArgumentException(value)
+                                    };
+
+                                break;
+                            }
+                            case "DATA_TYPE":
+                            {
+                                var dt = Enum.Parse<SqlDataType>(value, true);
+                                var r  = ConvertSqlDataType(dt, propertyName);
+
+                                if (r.IsFailure)
+                                    return r.ConvertFailure<Entity>();
+
+                                schemaProperty.Type = r.Value;
+
+                                break;
+                            }
+                        }
+                    }
+
+                    properties.Add(propertyName, schemaProperty);
+                }
+            }
+            finally
+            {
+                reader.Close();
+                reader.Dispose();
+            }
+
+            Schema schema = new()
+            {
+                Name = tableName, AllowExtraProperties = false, Properties = properties
+            };
+
+            return schema.ConvertToEntity();
         }
 
-        var parseResult =
-            Microsoft.SqlServer.Management.SqlParser.Parser.Parser.Parse(createStatement);
+        static Result<Entity, IErrorBuilder> ConvertSQLite(IDbCommand command, string tableName)
+        {
+            string queryResult;
 
-        var finalResult = parseResult.Script
-            .SelfAndDescendants<SqlCodeObject>(x => x.Children)
-            .OfType<SqlCreateTableStatement>()
-            .EnsureSingle(
-                ErrorCode_Sql.CouldNotGetCreateTable.ToErrorBuilder(table.Value)
-                    .WithLocation(this)
-            )
-            .Bind(x => ToSchema(x).MapError(e => e.WithLocation(this)))
-            .Map(x => x.ConvertToEntity());
+            try
+            {
+                queryResult = command.ExecuteScalar()?.ToString()!;
+            }
+            catch (Exception e)
+            {
+                return Result.Failure<Entity, IErrorBuilder>(
+                    ErrorCode_Sql.SqlError.ToErrorBuilder(e.Message)
+                );
+            }
 
-        return finalResult;
+            var parseResult =
+                Microsoft.SqlServer.Management.SqlParser.Parser.Parser.Parse(queryResult);
+
+            var schema = parseResult.Script
+                .SelfAndDescendants<SqlCodeObject>(x => x.Children)
+                .OfType<SqlCreateTableStatement>()
+                .EnsureSingle(
+                    ErrorCode_Sql.CouldNotGetCreateTable.ToErrorBuilder(tableName) as IErrorBuilder
+                )
+                .Bind(ToSchema)
+                .Map(x => x.ConvertToEntity());
+
+            return schema;
+        }
+    }
+
+    private static string GetQuery(string tableName, DatabaseType databaseType)
+    {
+        return databaseType switch
+        {
+            Sql.DatabaseType.SQLite => $"SELECT sql FROM SQLite_master WHERE name = '{tableName}';",
+            Sql.DatabaseType.MsSql =>
+                $"SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE  from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = '{tableName}'",
+            _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
+        };
     }
 
     public static Result<Schema, IErrorBuilder> ToSchema(SqlCreateTableStatement statement)

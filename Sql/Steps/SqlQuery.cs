@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -74,43 +72,10 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
             );
         }
 
-        var array = GetEntityEnumerable(dbReader, command, conn, cancellationToken).ToSequence();
+        var array = Extensions.GetEntityEnumerable(dbReader, command, conn, cancellationToken)
+            .ToSequence();
 
         return array;
-    }
-
-    static async IAsyncEnumerable<Entity> GetEntityEnumerable(
-        IDataReader reader,
-        IDbCommand command,
-        IDbConnection connection,
-        [EnumeratorCancellation] CancellationToken cancellation)
-    {
-        try
-        {
-            var row = new object[reader.FieldCount];
-
-            //TODO async properly
-
-            while (!reader.IsClosed && reader.Read() && !cancellation.IsCancellationRequested)
-            {
-                reader.GetValues(row);
-                var props = new List<(string, object?)>(row.Length);
-
-                for (var col = 0; col < row.Length; col++)
-                    props.Add((reader.GetName(col), row[col]));
-
-                yield return Entity.Create(props.ToArray());
-            }
-        }
-        finally
-        {
-            reader.Close();
-            reader.Dispose();
-            command.Dispose();
-            connection.Dispose();
-        }
-
-        await ValueTask.CompletedTask;
     }
 
     /// <summary>

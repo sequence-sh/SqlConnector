@@ -31,7 +31,8 @@ public partial class ExampleTests
     public async Task RunSCLSequence()
     {
         const string scl =
-            @"SqlCreateSchemaFromTable 'Data Source=C:\Users\wainw\source\repos\MarkPersonal\ProgressiveAnagram\ProgressiveAnagram\Quotes.db; Version=3;' 'Quotes' 'SQLite'";
+            // @"SqlQuery (CreateConnectionString 'DESKTOP-GPBS4SN' 'Introspect') 'SELECT *  FROM [AUN_CUSTODIAN]'";
+            @"SqlCreateSchemaFromTable (CreateConnectionString 'DESKTOP-GPBS4SN' 'Introspect') 'Aun_Custodian' ";
 
         var logger = TestOutputHelper.BuildLogger(LogLevel.Information);
         var sfs    = StepFactoryStore.CreateUsingReflection(typeof(CreateConnectionString));
