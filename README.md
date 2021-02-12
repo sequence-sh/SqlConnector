@@ -38,7 +38,20 @@ The following nested properties are also used
 
 This is an example of declaring a schema
 ```scala
-- <Schema> = (Name: "MyTable" AllowExtraProperties: False Properties: (Id: (Type: SchemaPropertyType.Integer Multiplicity: Multiplicity.ExactlyOne) Name: (Type: SchemaPropertyType.String Multiplicity: Multiplicity.UpToOne)))
+- <Schema> = (
+	Name: "MyTable" 
+	AllowExtraProperties: False 
+	Properties: (
+				Id: (
+					Type: SchemaPropertyType.Integer 
+					Multiplicity: Multiplicity.ExactlyOne
+					) 
+				Name:(
+					Type: SchemaPropertyType.String 
+					Multiplicity: Multiplicity.UpToOne
+					)
+				)
+	)	
 ```
 
 ## Example
@@ -46,11 +59,41 @@ This is an example of declaring a schema
 This is an example of a step that drops a table, recreates it, and inserts an entity.
 
 ```scala
-- <ConnectionString> = (CreateConnectionString Server: "Server" Database: "Database" UserName: "UserName" Password: "Password")
-- <Schema> = (Name: "MyTable" AllowExtraProperties: False Properties: (Id: (Type: SchemaPropertyType.Integer Multiplicity: Multiplicity.ExactlyOne) Name: (Type: SchemaPropertyType.String Multiplicity: Multiplicity.UpToOne)))
-- SqlCommand ConnectionString: <ConnectionString> Command: "DROP TABLE IF EXISTS MyTable" DatabaseType: 'SQLite'
-- SqlCreateTable ConnectionString: <ConnectionString> Schema: <Schema> DatabaseType: 'SQLite'
-- SqlInsert ConnectionString: <ConnectionString> Entities: [(Id: 1 Name:'Name1' ) (Id: 2 Name:'Name2')] Schema: <Schema> DatabaseType: 'SQLite'
+- <ConnectionString> = CreateConnectionString 
+						Server: "Server" 
+						Database: "Database" 
+						UserName: "UserName" 
+						Password: "Password"
+- <Schema> = (
+	Name: "MyTable" 
+	AllowExtraProperties: False 
+	Properties: (
+				Id: (
+					Type: SchemaPropertyType.Integer 
+					Multiplicity: Multiplicity.ExactlyOne
+					) 
+				Name:(
+					Type: SchemaPropertyType.String 
+					Multiplicity: Multiplicity.UpToOne
+					)
+				)
+	)
+- SqlCommand 
+			ConnectionString: <ConnectionString> 
+			Command: "DROP TABLE IF EXISTS MyTable" 
+			DatabaseType: 'SQLite'
+- SqlCreateTable 
+				ConnectionString: <ConnectionString> 
+				Schema: <Schema> 
+				DatabaseType: 'SQLite'
+- SqlInsert 
+			ConnectionString: <ConnectionString> 
+			Entities: [
+					(Id: 1 Name:'Name1' ) 
+					(Id: 2 Name:'Name2')
+					] 
+			Schema: <Schema> 
+			DatabaseType: 'SQLite'
 ```
 
 
