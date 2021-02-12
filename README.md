@@ -4,9 +4,19 @@ A class library for building sequences that interact with SQL databases.
 
 # How to Use
 
-```
+This connector contains six steps
 
-```
+## CreateConnectionString
+
+|Step|Description|Result|
+|-|-|-|
+|CreateConnectionString|Creates a MsSql connection string|`String`|
+|SqlCommand|Sends a command to a SQL database|`Unit`|
+|SqlCreateSchemaFromTable|Creates a Schema entity from a SQL table|`Entity`|
+|SqlCreateTable|Create a SQL table from a given schema|`Unit`|
+|SqlInsert|Inserts data into a SQL table|`Unit`|
+|SqlQuery|Executes a SQL query and returns the result as an entity stream.|`Array<Entity>`|
+
 
 # Releases
 
