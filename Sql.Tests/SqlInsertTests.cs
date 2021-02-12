@@ -113,7 +113,9 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                             {
                                 ConnectionString = Constant(inMemoryConnectionString),
                                 DatabaseType     = Constant(DatabaseType.SQLite),
-                                Command          = Constant($"Drop table {schema.Name}")
+                                Command = Constant(
+                                    $"DROP TABLE IF EXISTS {schema.Name}"
+                                )
                             },
                             new SqlCreateTable()
                             {
@@ -151,7 +153,9 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                             {
                                 ConnectionString = Constant(inMemoryConnectionString),
                                 DatabaseType     = Constant(DatabaseType.SQLite),
-                                Command          = Constant($"Drop table {schema.Name}")
+                                Command = Constant(
+                                    $"DROP TABLE IF EXISTS {schema.Name}"
+                                )
                             },
                             new SqlCreateTable()
                             {
