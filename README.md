@@ -1,6 +1,13 @@
+[![pipeline status](https://gitlab.com/reductech/edr/connectors/sql/badges/master/pipeline.svg)](https://gitlab.com/reductech/edr/connectors/sql/-/commits/master)
+[![coverage report](https://gitlab.com/reductech/edr/connectors/sql/badges/master/coverage.svg)](https://gitlab.com/reductech/edr/connectors/sql/-/commits/master)
+[![Gitter](https://badges.gitter.im/reductech/community.svg)](https://gitter.im/reductech/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 # EDR SQL Database Connector
 
-A class library for building sequences that interact with SQL databases.
+[Reductech EDR](https://gitlab.com/reductech/edr) is a collection of
+libraries that automates cross-application e-discovery and forensic workflows.
+
+The SQL connector containes Steps for interacting with SQL databases.
 
 # How to Use
 
@@ -96,6 +103,22 @@ This is an example of a step that drops a table, recreates it, and inserts an en
 			DatabaseType: 'SQLite'
 ```
 
+### [Try SQL Connector](https://gitlab.com/reductech/edr/edr/-/releases)
+
+Using [EDR](https://gitlab.com/reductech/edr/edr),
+the command line tool for running Sequences.
+
+## Documentation
+
+- Documentation is available here: https://docs.reductech.io
+
+## E-discovery Reduct
+
+The PowerShell Connector is part of a group of projects called
+[E-discovery Reduct](https://gitlab.com/reductech/edr)
+which consists of a collection of [Connectors](https://gitlab.com/reductech/edr/connectors)
+and a command-line application for running Sequences, called
+[EDR](https://gitlab.com/reductech/edr/edr/-/releases).
 
 # Releases
 
