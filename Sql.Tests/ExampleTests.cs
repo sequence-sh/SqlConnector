@@ -64,96 +64,109 @@ public partial class ExampleTests
 
         const string tableName = "MyTable4";
 
+        var schema = new Schema()
+        {
+            Name                 = tableName,
+            AllowExtraProperties = false,
+            Properties = new Dictionary<string, SchemaProperty>()
+            {
+                {
+                    "Id",
+                    new SchemaProperty()
+                    {
+                        Type         = SchemaPropertyType.Integer,
+                        Multiplicity = Multiplicity.ExactlyOne
+                    }
+                },
+                {
+                    "Name",
+                    new SchemaProperty()
+                    {
+                        Type = SchemaPropertyType.String, Multiplicity = Multiplicity.UpToOne
+                    }
+                },
+                {
+                    "TestDouble",
+                    new SchemaProperty()
+                    {
+                        Type = SchemaPropertyType.Double, Multiplicity = Multiplicity.UpToOne
+                    }
+                },
+                {
+                    "TestDate",
+                    new SchemaProperty()
+                    {
+                        Type = SchemaPropertyType.Date, Multiplicity = Multiplicity.UpToOne
+                    }
+                },
+                {
+                    "TestBool",
+                    new SchemaProperty()
+                    {
+                        Type = SchemaPropertyType.Bool, Multiplicity = Multiplicity.UpToOne
+                    }
+                },
+                {
+                    "TestEnum",
+                    new SchemaProperty()
+                    {
+                        Type         = SchemaPropertyType.Enum,
+                        Multiplicity = Multiplicity.UpToOne,
+                        Values       = new List<string> { "EnumValue", "EnumValue2" },
+                        EnumType     = "MyEnum"
+                    }
+                },
+            }
+        };
+
+        static Entity[] CreateEntityArray(int number)
+        {
+            var entities = new List<Entity>();
+
+            for (var i = 0; i < number; i++)
+            {
+                entities.Add(CreateEntity(i));
+            }
+
+            static Entity CreateEntity(int i)
+            {
+                return Entity.Create(
+                    ("Id", i),
+                    ("Name", $"Mark{i}"),
+                    ("TestDouble", 3.142 + i),
+                    ("TestDate", new DateTime(1970 + (i / 12), (i % 12) + 1, 6)),
+                    ("TestBool", i % 2 == 0),
+                    ("TestEnum", i % 2 == 0 ? "EnumValue" : "EnumValue2")
+                );
+            }
+
+            return entities.ToArray();
+        }
+
+        const int numberOfEntities = 10000;
+
         var step = new Sequence<Unit>()
         {
             InitialSteps = new List<IStep<Unit>>
             {
+                new SqlCommand()
+                {
+                    ConnectionString = Constant(connectionString),
+                    DatabaseType     = Constant(DatabaseType.SQLite),
+                    Command          = Constant($"Drop table {schema.Name};")
+                },
                 new SqlCreateTable()
                 {
                     ConnectionString = Constant(connectionString),
                     DatabaseType     = Constant(DatabaseType.SQLite),
-                    Entity = Constant(
-                        new Schema()
-                        {
-                            Name                 = tableName,
-                            AllowExtraProperties = false,
-                            Properties = new Dictionary<string, SchemaProperty>()
-                            {
-                                {
-                                    "Id",
-                                    new SchemaProperty()
-                                    {
-                                        Type         = SchemaPropertyType.Integer,
-                                        Multiplicity = Multiplicity.ExactlyOne
-                                    }
-                                },
-                                {
-                                    "Name",
-                                    new SchemaProperty()
-                                    {
-                                        Type         = SchemaPropertyType.String,
-                                        Multiplicity = Multiplicity.UpToOne
-                                    }
-                                },
-                                {
-                                    "TestDouble",
-                                    new SchemaProperty()
-                                    {
-                                        Type         = SchemaPropertyType.Double,
-                                        Multiplicity = Multiplicity.UpToOne
-                                    }
-                                },
-                                {
-                                    "TestDate",
-                                    new SchemaProperty()
-                                    {
-                                        Type         = SchemaPropertyType.Date,
-                                        Multiplicity = Multiplicity.UpToOne
-                                    }
-                                },
-                                {
-                                    "TestBool",
-                                    new SchemaProperty()
-                                    {
-                                        Type         = SchemaPropertyType.Bool,
-                                        Multiplicity = Multiplicity.UpToOne
-                                    }
-                                },
-                                {
-                                    "TestEnum",
-                                    new SchemaProperty()
-                                    {
-                                        Type         = SchemaPropertyType.Enum,
-                                        Multiplicity = Multiplicity.UpToOne
-                                    }
-                                },
-                            }
-                        }.ConvertToEntity()
-                    )
+                    Entity           = Constant(schema.ConvertToEntity())
                 },
                 new SqlInsert()
                 {
                     ConnectionString = Constant(connectionString),
-                    Table            = Constant(tableName),
-                    Entities = Array(
-                        Entity.Create(
-                            ("Id", 2),
-                            ("Name", "Mark"),
-                            ("TestDouble", 3.142),
-                            ("TestDate", new DateTime(1990, 1, 6)),
-                            ("TestBool", false),
-                            ("TestEnum", "EnumValue")
-                        ),
-                        Entity.Create(
-                            ("Id", 3),
-                            ("Name", "Ruth"),
-                            ("TestDouble", 4.142),
-                            ("TestDate", new DateTime(1991, 1, 6)),
-                            ("TestBool", true),
-                            ("TestEnum", "EnumValue2")
-                        )
-                    ),
-                    DatabaseType = Constant(DatabaseType.SQLite)
+                    Schema           = Constant(schema.ConvertToEntity()),
+                    Entities         = Array(CreateEntityArray(numberOfEntities)),
+                    DatabaseType     = Constant(DatabaseType.SQLite)
                 }
 
                 //new ForEach<Entity>()

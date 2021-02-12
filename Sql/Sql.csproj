@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SqlServer.Management.SqlParser" Version="160.20216.14" />
+    <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="Reductech.EDR.Core" Version="0.5.0-a.master.2102091605" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.7" />

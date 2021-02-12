@@ -18,9 +18,9 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                 new SqlInsert()
                 {
                     ConnectionString = StaticHelpers.Constant("My Connection String"),
-                    Table = StaticHelpers.Constant("My Table"),
+                    //Table = StaticHelpers.Constant("My Table"),
                     DatabaseType = StaticHelpers.Constant(DatabaseType.SQLite),
-                    Entities = StaticHelpers.Array(Entity.Create(("Id", 123), ("Name", "Mark")))
+                    Entities     = StaticHelpers.Array(Entity.Create(("Id", 123), ("Name", "Mark")))
                 },
                 Unit.Default,
                 "Command executed with 5 rows affected."
