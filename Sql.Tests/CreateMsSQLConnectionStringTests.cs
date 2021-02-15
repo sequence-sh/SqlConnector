@@ -9,7 +9,7 @@ namespace Reductech.EDR.Connectors.Sql.Tests
 {
 
 public partial class
-    CreateConnectionStringTests : StepTestBase<CreateConnectionString, StringStream>
+    CreateMsSQLConnectionStringTests : StepTestBase<CreateMsSQLConnectionString, StringStream>
 {
     /// <inheritdoc />
     protected override IEnumerable<StepCase> StepCases
@@ -18,7 +18,7 @@ public partial class
         {
             yield return new StepCase(
                 "Create connection string with username and password",
-                new CreateConnectionString
+                new CreateMsSQLConnectionString
                 {
                     Database = Constant("Database"),
                     Password = Constant("Password"),
@@ -30,7 +30,7 @@ public partial class
 
             yield return new StepCase(
                 "Create connection string with integrated security",
-                new CreateConnectionString
+                new CreateMsSQLConnectionString
                 {
                     Database = Constant("Database"), Server = Constant("Server"),
                 },
@@ -46,26 +46,30 @@ public partial class
         {
             yield return new ErrorCase(
                 "Missing password",
-                new CreateConnectionString
+                new CreateMsSQLConnectionString
                 {
                     Server   = Constant("Server"),
                     Database = Constant("Database"),
                     UserName = Constant("Username"),
                     Password = null
                 },
-                ErrorCode.MissingParameter.ToErrorBuilder(nameof(CreateConnectionString.Password))
+                ErrorCode.MissingParameter.ToErrorBuilder(
+                    nameof(CreateMsSQLConnectionString.Password)
+                )
             );
 
             yield return new ErrorCase(
                 "Missing username",
-                new CreateConnectionString
+                new CreateMsSQLConnectionString
                 {
                     Server   = Constant("Server"),
                     Database = Constant("Database"),
                     UserName = null,
                     Password = Constant("Password")
                 },
-                ErrorCode.MissingParameter.ToErrorBuilder(nameof(CreateConnectionString.UserName))
+                ErrorCode.MissingParameter.ToErrorBuilder(
+                    nameof(CreateMsSQLConnectionString.UserName)
+                )
             );
 
             foreach (var errorCase in base.ErrorCases)

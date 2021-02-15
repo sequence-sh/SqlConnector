@@ -25,17 +25,20 @@ namespace Reductech.EDR.Connectors.Sql.Tests
 [AutoTheory.UseTestOutputHelper]
 public partial class ExampleTests
 {
-    [Fact(Skip = "skip")]
-    //[Fact]
+    //[Fact(Skip = "skip")]
+    [Fact]
     [Trait("Category", "Integration")]
     public async Task RunSCLSequence()
     {
-        const string scl =
+        const string connectionString =
+            "User ID=postgres;Password=postgres;Host=localhost;Port=5432;Database=postgres;";
+
+        string scl =
             // @"SqlQuery (CreateConnectionString 'DESKTOP-GPBS4SN' 'Introspect') 'SELECT *  FROM [AUN_CUSTODIAN]'";
-            @"SqlCreateSchemaFromTable (CreateConnectionString 'DESKTOP-GPBS4SN' 'Introspect') 'Aun_Custodian' ";
+            $@"SqlCreateSchemaFromTable '{connectionString}' 'MyTable' 'postgres'";
 
         var logger = TestOutputHelper.BuildLogger(LogLevel.Information);
-        var sfs    = StepFactoryStore.CreateUsingReflection(typeof(CreateConnectionString));
+        var sfs    = StepFactoryStore.CreateUsingReflection(typeof(CreateMsSQLConnectionString));
 
         var context = new ExternalContext(
             ExternalContext.Default.FileSystemHelper,

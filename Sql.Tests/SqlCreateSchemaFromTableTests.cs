@@ -67,13 +67,13 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                         )
                 );
 
-            DataTable dt = new();
-            dt.Clear();
-            dt.Columns.Add("COLUMN_NAME");
-            dt.Columns.Add("IS_NULLABLE");
-            dt.Columns.Add("DATA_TYPE");
-            dt.Rows.Add("Id",   "NO",  "int");
-            dt.Rows.Add("Name", "YES", "nvarchar");
+            DataTable msSqlDataTable = new();
+            msSqlDataTable.Clear();
+            msSqlDataTable.Columns.Add("COLUMN_NAME");
+            msSqlDataTable.Columns.Add("IS_NULLABLE");
+            msSqlDataTable.Columns.Add("DATA_TYPE");
+            msSqlDataTable.Rows.Add("Id",   "NO",  "int");
+            msSqlDataTable.Rows.Add("Name", "YES", "nvarchar");
 
             yield return new StepCase(
                     "Simple MsSql case",
@@ -94,7 +94,38 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                             DatabaseType.MsSql,
                             "MyConnectionString",
                             "SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE  from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = 'MyTable'",
-                            dt
+                            msSqlDataTable
+                        )
+                );
+
+            DataTable postGresDataTable = new();
+            postGresDataTable.Clear();
+            postGresDataTable.Columns.Add("column_name");
+            postGresDataTable.Columns.Add("is_nullable");
+            postGresDataTable.Columns.Add("data_type");
+            postGresDataTable.Rows.Add("Id",   "NO",  "integer");
+            postGresDataTable.Rows.Add("Name", "YES", "text");
+
+            yield return new StepCase(
+                    "Simple Postgres Case",
+                    new SqlCreateSchemaFromTable()
+                    {
+                        ConnectionString = Constant("MyConnectionString"),
+                        Table            = Constant("MyTable"),
+                        DatabaseType     = Constant(DatabaseType.Postgres),
+                    },
+                    expectedSchema
+                        .ConvertToEntity()
+                )
+                .WithContextMock(
+                    DbConnectionFactory.DbConnectionName,
+                    mr =>
+                        DbMockHelper.SetupConnectionFactoryForQuery(
+                            mr,
+                            DatabaseType.Postgres,
+                            "MyConnectionString",
+                            "SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE  from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = 'MyTable'",
+                            postGresDataTable
                         )
                 );
         }

@@ -14,7 +14,12 @@ public enum DatabaseType
     /// <summary>
     /// Connect to MsSql
     /// </summary>
-    MsSql
+    MsSql,
+
+    /// <summary>
+    /// Connect to Postgres
+    /// </summary>
+    Postgres
 }
 
 }
