@@ -48,18 +48,18 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         if (databaseType.IsFailure)
             return databaseType.ConvertFailure<Entity>();
 
-        string? schema = null;
+        string? postgresSchema = null;
 
-        if (Schema is not null)
+        if (PostgresSchema is not null)
         {
-            var s = await Schema.Run(stateMonad, cancellationToken)
+            var s = await PostgresSchema.Run(stateMonad, cancellationToken)
                 .Map(x => x.GetStringAsync())
                 .Bind(x => Extensions.CheckSqlObjectName(x).MapError(e => e.WithLocation(this)));
 
             if (s.IsFailure)
                 return s.ConvertFailure<Entity>();
 
-            schema = s.Value;
+            postgresSchema = s.Value;
         }
 
         var factory = stateMonad.ExternalContext
@@ -77,7 +77,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
 
         conn.Open();
 
-        var queryString = GetQuery(table.Value, schema, databaseType.Value);
+        var queryString = GetQuery(table.Value, postgresSchema, databaseType.Value);
 
         using var command = conn.CreateCommand();
         command.CommandText = queryString;
@@ -98,6 +98,8 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
             Sql.DatabaseType.SQLite => ConvertSQLite(command, tableName),
             Sql.DatabaseType.MsSql => ConvertDefault(command, tableName, databaseType),
             Sql.DatabaseType.Postgres => ConvertDefault(command, tableName, databaseType),
+            Sql.DatabaseType.MySql => ConvertDefault(command, tableName, databaseType),
+            Sql.DatabaseType.MariaDb => ConvertDefault(command, tableName, databaseType),
             _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
         };
 
@@ -244,7 +246,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
     /// </summary>
     [StepProperty(4)]
     [DefaultValueExplanation("No schema")]
-    public IStep<StringStream>? Schema { get; set; } = null;
+    public IStep<StringStream>? PostgresSchema { get; set; } = null;
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } =

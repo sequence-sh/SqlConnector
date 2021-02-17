@@ -62,14 +62,14 @@ public sealed class CreateMsSQLConnectionString : CompoundStep<StringStream>
         {
             if (string.IsNullOrEmpty(user))
                 return new SingleError(
-                    new StepErrorLocation(this),
+                    new ErrorLocation(this),
                     ErrorCode.MissingParameter,
                     nameof(UserName)
                 );
 
             if (string.IsNullOrEmpty(pass))
                 return new SingleError(
-                    new StepErrorLocation(this),
+                    new ErrorLocation(this),
                     ErrorCode.MissingParameter,
                     nameof(Password)
                 );

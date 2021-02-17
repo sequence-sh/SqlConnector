@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.SqlServer.Management.SqlParser.Metadata;
+using MySqlConnector;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Entities;
@@ -68,7 +69,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
 
         using var dbCommand = conn.CreateCommand();
 
-        var setCommandResult = SetCommand(schema.Value, dbCommand);
+        var setCommandResult = SetCommand(schema.Value, dbCommand, databaseType.Value);
 
         if (setCommandResult.IsFailure)
             return setCommandResult.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
@@ -94,18 +95,38 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         return Unit.Default;
     }
 
-    private Result<Unit, IErrorBuilder> SetCommand(Schema schema, IDbCommand command)
+    private static bool ShouldQuoteNames(DatabaseType databaseType)
+    {
+        return databaseType switch
+        {
+            Sql.DatabaseType.SQLite => true,
+            Sql.DatabaseType.MsSql => true,
+            Sql.DatabaseType.Postgres => true,
+            Sql.DatabaseType.MySql => false,
+            Sql.DatabaseType.MariaDb => false,
+            _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
+        };
+    }
+
+    private Result<Unit, IErrorBuilder> SetCommand(
+        Schema schema,
+        IDbCommand command,
+        DatabaseType databaseType)
     {
         var sb = new StringBuilder();
 
         var errors = new List<IErrorBuilder>();
 
+        var quoteNames = ShouldQuoteNames(databaseType);
+
         var tableName = Extensions.CheckSqlObjectName(schema.Name);
 
         if (tableName.IsFailure)
             errors.Add(tableName.Error);
-        else
+        else if (quoteNames)
             sb.AppendLine($"CREATE TABLE \"{tableName.Value}\" (");
+        else
+            sb.AppendLine($"CREATE TABLE {tableName.Value} (");
 
         if (schema.AllowExtraProperties)
             errors.Add(
@@ -118,7 +139,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
 
         foreach (var (column, schemaProperty) in schema.Properties)
         {
-            var dataType     = TryGetDataType(schemaProperty.Type);
+            var dataType     = TryGetDataType(schemaProperty.Type, databaseType);
             var multiplicity = TryGetMultiplicityString(schemaProperty.Multiplicity);
 
             if (dataType.IsFailure)
@@ -136,10 +157,10 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
 
                 if (columnName.IsFailure)
                     errors.Add(columnName.Error);
+                else if (quoteNames)
+                    sb.AppendLine($"\"{columnName.Value}\" {dataType.Value} {multiplicity.Value}");
                 else
-                    sb.AppendLine(
-                        $"\"{columnName.Value}\" {dataType.Value.ToString().ToUpperInvariant()} {multiplicity.Value}"
-                    );
+                    sb.AppendLine($"{columnName.Value} {dataType.Value} {multiplicity.Value}");
 
                 index++;
             }
@@ -154,26 +175,81 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
 
         return Unit.Default;
 
-        static Result<SqlDataType, IErrorBuilder> TryGetDataType(
-            SchemaPropertyType schemaPropertyType)
+        static Result<string, IErrorBuilder> TryGetDataType(
+            SchemaPropertyType schemaPropertyType,
+            DatabaseType databaseType)
         {
-            return schemaPropertyType switch
+            switch (databaseType)
             {
-                SchemaPropertyType.String  => SqlDataType.NText,
-                SchemaPropertyType.Integer => SqlDataType.Int,
-                SchemaPropertyType.Double  => SqlDataType.Float,
-                SchemaPropertyType.Enum    => SqlDataType.NText,
-                SchemaPropertyType.Bool    => SqlDataType.Bit,
-                SchemaPropertyType.Date    => SqlDataType.DateTime2,
-                SchemaPropertyType.Entity => ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder(
-                    $"Sql does not support nested entities"
-                ),
-                _ => throw new ArgumentOutOfRangeException(
-                    nameof(schemaPropertyType),
-                    schemaPropertyType,
-                    null
-                )
-            };
+                case Sql.DatabaseType.Postgres:
+                {
+                    return schemaPropertyType switch
+                    {
+                        SchemaPropertyType.String  => "text",
+                        SchemaPropertyType.Integer => "integer",
+                        SchemaPropertyType.Double  => "double precision",
+                        SchemaPropertyType.Enum    => "text",
+                        SchemaPropertyType.Bool    => "boolean",
+                        SchemaPropertyType.Date    => "date",
+                        SchemaPropertyType.Entity => ErrorCode_Sql.CouldNotCreateTable
+                            .ToErrorBuilder($"Sql does not support nested entities"),
+                        _ => throw new ArgumentOutOfRangeException(
+                            nameof(schemaPropertyType),
+                            schemaPropertyType,
+                            null
+                        )
+                    };
+                }
+
+                case Sql.DatabaseType.SQLite:
+                case Sql.DatabaseType.MySql:
+                {
+                    Result<SqlDataType, IErrorBuilder> sqlDbType = schemaPropertyType switch
+                    {
+                        SchemaPropertyType.String  => SqlDataType.NText,
+                        SchemaPropertyType.Integer => SqlDataType.Int,
+                        SchemaPropertyType.Double  => SqlDataType.Float,
+                        SchemaPropertyType.Enum    => SqlDataType.NText,
+                        SchemaPropertyType.Bool    => SqlDataType.Bit,
+                        SchemaPropertyType.Date    => SqlDataType.DateTime2,
+                        SchemaPropertyType.Entity => ErrorCode_Sql.CouldNotCreateTable
+                            .ToErrorBuilder($"Sql does not support nested entities"),
+                        _ => throw new ArgumentOutOfRangeException(
+                            nameof(schemaPropertyType),
+                            schemaPropertyType,
+                            null
+                        )
+                    };
+
+                    return sqlDbType.Map(x => x.ToString().ToUpperInvariant());
+                }
+                case Sql.DatabaseType.MsSql:
+                case Sql.DatabaseType.MariaDb:
+                {
+                    Result<MySqlDbType, IErrorBuilder> sqlDbType = schemaPropertyType switch
+                    {
+                        SchemaPropertyType.String  => MySqlDbType.Text,
+                        SchemaPropertyType.Integer => MySqlDbType.Int32,
+                        SchemaPropertyType.Double  => MySqlDbType.Float,
+                        SchemaPropertyType.Enum    => MySqlDbType.Text,
+                        SchemaPropertyType.Bool    => MySqlDbType.Bit,
+                        SchemaPropertyType.Date    => MySqlDbType.DateTime,
+                        SchemaPropertyType.Entity => ErrorCode_Sql.CouldNotCreateTable
+                            .ToErrorBuilder($"Sql does not support nested entities"),
+                        _ => throw new ArgumentOutOfRangeException(
+                            nameof(schemaPropertyType),
+                            schemaPropertyType,
+                            null
+                        )
+                    };
+
+                    return sqlDbType.Map(
+                        x => x == MySqlDbType.Int32 ? "INT" : x.ToString().ToUpperInvariant()
+                    );
+                }
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null);
+            }
         }
 
         static Result<string, IErrorBuilder> TryGetMultiplicityString(Multiplicity multiplicity)
@@ -187,8 +263,12 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
                     $"Sql does not support Multiplicity '{multiplicity}'"
                 ),
                 Multiplicity.ExactlyOne => "NOT NULL",
-                Multiplicity.UpToOne => "NULL",
-                _ => throw new ArgumentOutOfRangeException(nameof(multiplicity), multiplicity, null)
+                Multiplicity.UpToOne    => "NULL",
+                _ => throw new ArgumentOutOfRangeException(
+                    nameof(multiplicity),
+                    multiplicity,
+                    null
+                )
             };
         }
     }

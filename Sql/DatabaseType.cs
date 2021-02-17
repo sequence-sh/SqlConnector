@@ -7,19 +7,29 @@
 public enum DatabaseType
 {
     /// <summary>
-    /// Connect to SQLite
+    /// SQLite
     /// </summary>
     SQLite,
 
     /// <summary>
-    /// Connect to MsSql
+    /// MsSql
     /// </summary>
     MsSql,
 
     /// <summary>
-    /// Connect to Postgres
+    /// Postgres
     /// </summary>
-    Postgres
+    Postgres,
+
+    /// <summary>
+    /// MySql
+    /// </summary>
+    MySql,
+
+    /// <summary>
+    /// MariaDb
+    /// </summary>
+    MariaDb
 }
 
 }
