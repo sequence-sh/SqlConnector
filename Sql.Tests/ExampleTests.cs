@@ -25,8 +25,8 @@ namespace Reductech.EDR.Connectors.Sql.Tests
 [AutoTheory.UseTestOutputHelper]
 public partial class ExampleTests
 {
-    //[Fact(Skip = "skip")]
-    [Fact]
+    [Fact(Skip = "skip")]
+    //[Fact]
     [Trait("Category", "Integration")]
     public async Task RunSCLSequence()
     {
@@ -59,8 +59,8 @@ public partial class ExampleTests
         r.ShouldBeSuccessful(x => x.ToString()!);
     }
 
-    //[Fact(Skip = "skip")]
-    [Fact]
+    [Fact(Skip = "skip")]
+    //[Fact]
     [Trait("Category", "Integration")]
     public async Task RunObjectSequence()
     {
