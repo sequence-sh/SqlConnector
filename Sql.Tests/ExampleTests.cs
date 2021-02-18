@@ -184,8 +184,7 @@ public partial class ExampleTests
                     ConnectionString = GetVariable<StringStream>("ConnectionString"),
                     Schema           = Constant(schema.ConvertToEntity()),
                     Entities         = Array(CreateEntityArray(numberOfEntities)),
-                    DatabaseType     = Constant(dbType),
-                    PostgresSchema   = Constant("public")
+                    DatabaseType     = Constant(dbType)
                 }
             },
             FinalStep = new DoNothing()
