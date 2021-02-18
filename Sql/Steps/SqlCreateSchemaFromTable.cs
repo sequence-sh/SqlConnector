@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
+using Npgsql.PostgresTypes;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Entities;
@@ -47,6 +48,20 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         if (databaseType.IsFailure)
             return databaseType.ConvertFailure<Entity>();
 
+        string? postgresSchema = null;
+
+        if (PostgresSchema is not null)
+        {
+            var s = await PostgresSchema.Run(stateMonad, cancellationToken)
+                .Map(x => x.GetStringAsync())
+                .Bind(x => Extensions.CheckSqlObjectName(x).MapError(e => e.WithLocation(this)));
+
+            if (s.IsFailure)
+                return s.ConvertFailure<Entity>();
+
+            postgresSchema = s.Value;
+        }
+
         var factory = stateMonad.ExternalContext
             .TryGetContext<IDbConnectionFactory>(DbConnectionFactory.DbConnectionName);
 
@@ -62,7 +77,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
 
         conn.Open();
 
-        var queryString = GetQuery(table.Value, databaseType.Value);
+        var queryString = GetQuery(table.Value, postgresSchema, databaseType.Value);
 
         using var command = conn.CreateCommand();
         command.CommandText = queryString;
@@ -81,11 +96,17 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         return databaseType switch
         {
             Sql.DatabaseType.SQLite => ConvertSQLite(command, tableName),
-            Sql.DatabaseType.MsSql => ConvertMsSql(command, tableName),
+            Sql.DatabaseType.MsSql => ConvertDefault(command, tableName, databaseType),
+            Sql.DatabaseType.Postgres => ConvertDefault(command, tableName, databaseType),
+            Sql.DatabaseType.MySql => ConvertDefault(command, tableName, databaseType),
+            Sql.DatabaseType.MariaDb => ConvertDefault(command, tableName, databaseType),
             _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
         };
 
-        static Result<Entity, IErrorBuilder> ConvertMsSql(IDbCommand command, string tableName)
+        static Result<Entity, IErrorBuilder> ConvertDefault(
+            IDbCommand command,
+            string tableName,
+            DatabaseType databaseType)
         {
             IDataReader reader;
 
@@ -118,7 +139,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                         var name  = reader.GetName(col);
                         var value = row[col].ToString()!;
 
-                        switch (name)
+                        switch (name.ToUpperInvariant())
                         {
                             case "COLUMN_NAME":
                                 propertyName = value;
@@ -137,8 +158,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                             }
                             case "DATA_TYPE":
                             {
-                                var dt = Enum.Parse<SqlDataType>(value, true);
-                                var r  = ConvertSqlDataType(dt, propertyName);
+                                var r = ConvertDataType(value, propertyName, databaseType);
 
                                 if (r.IsFailure)
                                     return r.ConvertFailure<Entity>();
@@ -198,15 +218,60 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         }
     }
 
-    private static string GetQuery(string tableName, DatabaseType databaseType)
+    /// <summary>
+    /// The Connection String
+    /// </summary>
+    [StepProperty(order: 1)]
+    [Required]
+    public IStep<StringStream> ConnectionString { get; set; } = null!;
+
+    /// <summary>
+    /// The table to create a schema from
+    /// </summary>
+    [StepProperty(order: 2)]
+    [Required]
+    public IStep<StringStream> Table { get; set; } = null!;
+
+    /// <summary>
+    /// The Database Type to connect to
+    /// </summary>
+    [StepProperty(3)]
+    [DefaultValueExplanation("Sql")]
+    [Alias("DB")]
+    public IStep<DatabaseType> DatabaseType { get; set; } =
+        new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
+
+    /// <summary>
+    /// The schema this table belongs to, if postgres
+    /// </summary>
+    [StepProperty(4)]
+    [DefaultValueExplanation("No schema")]
+    public IStep<StringStream>? PostgresSchema { get; set; } = null;
+
+    /// <inheritdoc />
+    public override IStepFactory StepFactory { get; } =
+        new SimpleStepFactory<SqlCreateSchemaFromTable, Entity>();
+
+    private static string GetQuery(string tableName, string? schema, DatabaseType databaseType)
     {
         return databaseType switch
         {
             Sql.DatabaseType.SQLite => $"SELECT sql FROM SQLite_master WHERE name = '{tableName}';",
-            Sql.DatabaseType.MsSql =>
-                $"SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE  from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = '{tableName}'",
+            Sql.DatabaseType.MsSql => CreateQuery(tableName, schema),
+            Sql.DatabaseType.Postgres => CreateQuery(tableName, schema),
             _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
         };
+
+        static string CreateQuery(string tableName, string? schema)
+        {
+            var q =
+                $"SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE  from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = '{tableName}'";
+
+            if (schema != null)
+                q += $" table_schema = '{schema}'";
+
+            return q;
+        }
     }
 
     public static Result<Schema, IErrorBuilder> ToSchema(SqlCreateTableStatement statement)
@@ -244,6 +309,59 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
             AllowExtraProperties = false,
             Name                 = statement.Name.ObjectName.Value,
             Properties           = schemaProperties,
+        };
+    }
+
+    private static Result<SchemaPropertyType, IErrorBuilder> ConvertDataType(
+        string dataTypeString,
+        string column,
+        DatabaseType databaseType)
+    {
+        switch (databaseType)
+        {
+            case Sql.DatabaseType.SQLite:
+                return ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(dataTypeString, column);
+            case Sql.DatabaseType.MsSql:
+            {
+                if (Enum.TryParse(dataTypeString, true, out SqlDataType dt))
+                    return ConvertSqlDataType(dt, column);
+
+                return ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(dataTypeString, column);
+            }
+            case Sql.DatabaseType.Postgres:
+            {
+                return ConvertPostgresDataType(dataTypeString, column);
+            }
+            default:
+                throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null);
+        }
+    }
+
+    private static Result<SchemaPropertyType, IErrorBuilder> ConvertPostgresDataType(
+        string dataType,
+        string column)
+    {
+        return dataType.ToLowerInvariant() switch //This list is not exhaustive
+        {
+            "bigint" => SchemaPropertyType.Integer,
+            "bit" => SchemaPropertyType.Bool,
+            "bit varying" => SchemaPropertyType.Bool,
+            "boolean" => SchemaPropertyType.Bool,
+            "char" => SchemaPropertyType.String,
+            "character varying" => SchemaPropertyType.String,
+            "character" => SchemaPropertyType.String,
+            "varchar" => SchemaPropertyType.String,
+            "date" => SchemaPropertyType.Date,
+            "double precision" => SchemaPropertyType.Double,
+            "integer" => SchemaPropertyType.Integer,
+            "numeric" => SchemaPropertyType.Double,
+            "decimal" => SchemaPropertyType.Double,
+            "real" => SchemaPropertyType.Double,
+            "smallint" => SchemaPropertyType.Integer,
+            "text" => SchemaPropertyType.String,
+            "time" => SchemaPropertyType.Date,
+            "timestamp" => SchemaPropertyType.Date,
+            _ => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(dataType, column)
         };
     }
 
@@ -325,33 +443,6 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
             _ => throw new ArgumentOutOfRangeException(nameof(dataType), dataType, null)
         };
     }
-
-    /// <summary>
-    /// The Connection String
-    /// </summary>
-    [StepProperty(order: 1)]
-    [Required]
-    public IStep<StringStream> ConnectionString { get; set; } = null!;
-
-    /// <summary>
-    /// The table to create a schema from
-    /// </summary>
-    [StepProperty(order: 2)]
-    [Required]
-    public IStep<StringStream> Table { get; set; } = null!;
-
-    /// <summary>
-    /// The Database Type to connect to
-    /// </summary>
-    [StepProperty(3)]
-    [DefaultValueExplanation("Sql")]
-    [Alias("DB")]
-    public IStep<DatabaseType> DatabaseType { get; set; } =
-        new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
-
-    /// <inheritdoc />
-    public override IStepFactory StepFactory { get; } =
-        new SimpleStepFactory<SqlCreateSchemaFromTable, Entity>();
 }
 
 }

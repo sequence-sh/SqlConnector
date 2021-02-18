@@ -13,7 +13,7 @@ namespace Reductech.EDR.Connectors.Sql.Steps
 /// <summary>
 /// Creates an MSSQL connection string
 /// </summary>
-public sealed class CreateConnectionString : CompoundStep<StringStream>
+public sealed class CreateMsSQLConnectionString : CompoundStep<StringStream>
 {
     /// <inheritdoc />
     protected override async Task<Result<StringStream, IError>> Run(
@@ -62,14 +62,14 @@ public sealed class CreateConnectionString : CompoundStep<StringStream>
         {
             if (string.IsNullOrEmpty(user))
                 return new SingleError(
-                    new StepErrorLocation(this),
+                    new ErrorLocation(this),
                     ErrorCode.MissingParameter,
                     nameof(UserName)
                 );
 
             if (string.IsNullOrEmpty(pass))
                 return new SingleError(
-                    new StepErrorLocation(this),
+                    new ErrorLocation(this),
                     ErrorCode.MissingParameter,
                     nameof(Password)
                 );
@@ -87,14 +87,14 @@ public sealed class CreateConnectionString : CompoundStep<StringStream>
     /// <summary>
     /// The server address (and port)
     /// </summary>
-    [StepProperty(order: 1)]
+    [StepProperty(1)]
     [Required]
     public IStep<StringStream> Server { get; set; } = null!;
 
     /// <summary>
     /// The database to run the query against
     /// </summary>
-    [StepProperty(order: 2)]
+    [StepProperty(2)]
     [Required]
     [Alias("Db")]
     public IStep<StringStream> Database { get; set; } = null!;
@@ -102,20 +102,20 @@ public sealed class CreateConnectionString : CompoundStep<StringStream>
     /// <summary>
     /// The username for database access.
     /// </summary>
-    [StepProperty(order: 3)]
+    [StepProperty(3)]
     [DefaultValueExplanation("Use integrated security if not set.")]
     public IStep<StringStream>? UserName { get; set; } = null;
 
     /// <summary>
     /// The password for database access.
     /// </summary>
-    [StepProperty(order: 4)]
+    [StepProperty(4)]
     [DefaultValueExplanation("Use integrated security if not set.")]
     public IStep<StringStream>? Password { get; set; } = null;
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } =
-        new SimpleStepFactory<CreateConnectionString, StringStream>();
+        new SimpleStepFactory<CreateMsSQLConnectionString, StringStream>();
 }
 
 }

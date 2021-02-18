@@ -171,17 +171,6 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                         FinalStep = new DoNothing()
                     },
                     Unit.Default
-                    //"Command executed with 0 rows affected.",
-                    //"Command executed with 0 rows affected.",
-                    //"Command executed with 349 rows affected.",
-                    //"Command executed with 349 rows affected.",
-                    //"Command executed with 349 rows affected.",
-                    //"Command executed with 349 rows affected.",
-                    //"Command executed with 349 rows affected.",
-                    //"Command executed with 349 rows affected.",
-                    //"Command executed with 349 rows affected.",
-                    //"Command executed with 349 rows affected.",
-                    //"Command executed with 208 rows affected."
                 ) { IgnoreLoggedValues = true }
                 .WithContext(
                     DbConnectionFactory.DbConnectionName,

@@ -49,6 +49,20 @@ public sealed class SqlInsert : CompoundStep<Unit>
         if (databaseType.IsFailure)
             return databaseType.ConvertFailure<Unit>();
 
+        string? postgresSchema = null;
+
+        if (PostgresSchema is not null)
+        {
+            var s = await PostgresSchema.Run(stateMonad, cancellationToken)
+                .Map(x => x.GetStringAsync())
+                .Bind(x => Extensions.CheckSqlObjectName(x).MapError(e => e.WithLocation(this)));
+
+            if (s.IsFailure)
+                return s.ConvertFailure<Unit>();
+
+            postgresSchema = s.Value;
+        }
+
         var schema = await Schema.Run(stateMonad, cancellationToken)
             .Bind(
                 x => Core.Entities.Schema.TryCreateFromEntity(x).MapError(e => e.WithLocation(this))
@@ -79,11 +93,20 @@ public sealed class SqlInsert : CompoundStep<Unit>
 
         var batches = MoreLinq.MoreEnumerable.Batch(elements.Value, batchSize);
 
+        var shouldQuoteFieldNames = ShouldQuoteFieldNames(databaseType.Value);
+
         foreach (var batch in batches)
         {
             using var dbCommand = conn.CreateCommand();
 
-            var setCommandResult = SetCommand(schema.Value, batch, dbCommand, stateMonad.Logger);
+            var setCommandResult = SetCommand(
+                schema.Value,
+                postgresSchema,
+                shouldQuoteFieldNames,
+                batch,
+                dbCommand,
+                stateMonad.Logger
+            );
 
             if (setCommandResult.IsFailure)
                 return setCommandResult.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
@@ -110,8 +133,23 @@ public sealed class SqlInsert : CompoundStep<Unit>
         return Unit.Default;
     }
 
+    private static bool ShouldQuoteFieldNames(DatabaseType databaseType)
+    {
+        return databaseType switch
+        {
+            Sql.DatabaseType.SQLite => false,
+            Sql.DatabaseType.MsSql => false,
+            Sql.DatabaseType.Postgres => true,
+            Sql.DatabaseType.MySql => false,
+            Sql.DatabaseType.MariaDb => false,
+            _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
+        };
+    }
+
     private Result<Unit, IErrorBuilder> SetCommand(
         Schema schema,
+        string? postgresSchemaName,
+        bool quoteFieldNames,
         IEnumerable<Entity> entities,
         IDbCommand command,
         ILogger logger)
@@ -124,7 +162,11 @@ public sealed class SqlInsert : CompoundStep<Unit>
         if (tableName.IsFailure)
             return tableName.ConvertFailure<Unit>();
 
-        stringBuilder.Append($"INSERT INTO {tableName.Value} (");
+        if (string.IsNullOrWhiteSpace(postgresSchemaName))
+            stringBuilder.Append($"INSERT INTO {tableName.Value} (");
+        else
+            stringBuilder.Append($"INSERT INTO {postgresSchemaName}.\"{tableName.Value}\" (");
+
         var first = true;
 
         foreach (var (name, _) in schema.Properties)
@@ -138,7 +180,11 @@ public sealed class SqlInsert : CompoundStep<Unit>
                 errors.Add(columnName.Error);
             else
             {
-                stringBuilder.Append($"{columnName.Value}");
+                if (quoteFieldNames)
+                    stringBuilder.Append($"\"{columnName.Value}\"");
+                else
+                    stringBuilder.Append($"{columnName.Value}");
+
                 first = false;
             }
         }
@@ -257,6 +303,13 @@ public sealed class SqlInsert : CompoundStep<Unit>
     [Alias("DB")]
     public IStep<DatabaseType> DatabaseType { get; set; } =
         new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
+
+    /// <summary>
+    /// The schema this table belongs to, if postgres
+    /// </summary>
+    [StepProperty(5)]
+    [DefaultValueExplanation("No schema")]
+    public IStep<StringStream>? PostgresSchema { get; set; } = null;
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } =

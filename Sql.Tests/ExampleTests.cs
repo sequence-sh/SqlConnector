@@ -30,12 +30,15 @@ public partial class ExampleTests
     [Trait("Category", "Integration")]
     public async Task RunSCLSequence()
     {
-        const string scl =
+        const string connectionString =
+            "User ID=postgres;Password=postgres;Host=localhost;Port=5432;Database=postgres;";
+
+        string scl =
             // @"SqlQuery (CreateConnectionString 'DESKTOP-GPBS4SN' 'Introspect') 'SELECT *  FROM [AUN_CUSTODIAN]'";
-            @"SqlCreateSchemaFromTable (CreateConnectionString 'DESKTOP-GPBS4SN' 'Introspect') 'Aun_Custodian' ";
+            $@"SqlCreateSchemaFromTable '{connectionString}' 'MyTable' 'postgres'";
 
         var logger = TestOutputHelper.BuildLogger(LogLevel.Information);
-        var sfs    = StepFactoryStore.CreateUsingReflection(typeof(CreateConnectionString));
+        var sfs    = StepFactoryStore.CreateUsingReflection(typeof(CreateMsSQLConnectionString));
 
         var context = new ExternalContext(
             ExternalContext.Default.FileSystemHelper,
@@ -61,8 +64,8 @@ public partial class ExampleTests
     [Trait("Category", "Integration")]
     public async Task RunObjectSequence()
     {
-        const string connectionString =
-            @"Data Source=C:\Users\wainw\source\repos\MarkPersonal\ProgressiveAnagram\ProgressiveAnagram\Quotes.db; Version=3;";
+        //const string connectionString =
+        //    @"Data Source=C:\Users\wainw\source\repos\MarkPersonal\ProgressiveAnagram\ProgressiveAnagram\Quotes.db; Version=3;";
 
         const string tableName = "MyTable4";
 
@@ -147,54 +150,42 @@ public partial class ExampleTests
 
         const int numberOfEntities = 10000;
 
+        var dbType = DatabaseType.MariaDb;
+
         var step = new Sequence<Unit>()
         {
             InitialSteps = new List<IStep<Unit>>
             {
+                new SetVariable<StringStream>()
+                {
+                    Variable = new VariableName("ConnectionString"),
+                    Value = new CreateMySQLConnectionString()
+                    {
+                        UId      = Constant("root"),
+                        Database = Constant("mydatabase"),
+                        Server   = Constant("localhost"),
+                        Pwd      = Constant("maria"),
+                    }
+                },
                 new SqlCommand()
                 {
-                    ConnectionString = Constant(connectionString),
-                    DatabaseType     = Constant(DatabaseType.SQLite),
-                    Command          = Constant($"Drop table {schema.Name};")
+                    ConnectionString = GetVariable<StringStream>("ConnectionString"),
+                    DatabaseType     = Constant(dbType),
+                    Command          = Constant($"Drop table if exists {schema.Name};")
                 },
                 new SqlCreateTable()
                 {
-                    ConnectionString = Constant(connectionString),
-                    DatabaseType     = Constant(DatabaseType.SQLite),
+                    ConnectionString = GetVariable<StringStream>("ConnectionString"),
+                    DatabaseType     = Constant(dbType),
                     Schema           = Constant(schema.ConvertToEntity())
                 },
                 new SqlInsert()
                 {
-                    ConnectionString = Constant(connectionString),
+                    ConnectionString = GetVariable<StringStream>("ConnectionString"),
                     Schema           = Constant(schema.ConvertToEntity()),
                     Entities         = Array(CreateEntityArray(numberOfEntities)),
-                    DatabaseType     = Constant(DatabaseType.SQLite)
+                    DatabaseType     = Constant(dbType)
                 }
-
-                //new ForEach<Entity>()
-                //{
-                //    Array = new SqlQuery()
-                //    {
-                //        //ConnectionString = new CreateConnectionString
-                //        //{
-                //        //    Database = Constant("Introspect"),
-                //        //    Server   = Constant("DESKTOP-GPBS4SN"),
-                //        //    UserName = Constant("mark"),
-                //        //    Password = Constant("vafm4YgWyU5pWxJ")
-                //        //},
-
-                //        ConnectionString =
-                //            Constant(
-                //                @"Data Source=C:\Users\wainw\source\repos\MarkPersonal\ProgressiveAnagram\ProgressiveAnagram\Quotes.db; Version=3;"
-                //            ),
-                //        Query        = Constant(@"SELECT *  FROM Quotes limit 5"),
-                //        DatabaseType = Constant(DatabaseType.SQLite)
-                //    },
-                //    Action = new Log<Entity>
-                //    {
-                //        Value = new GetVariable<Entity> { Variable = VariableName.Entity }
-                //    },
-                //},
             },
             FinalStep = new DoNothing()
         };
