@@ -25,22 +25,22 @@ public sealed class CreateMySQLConnectionString : CompoundStep<StringStream>
         var port = await Port.Run(stateMonad, cancellationToken);
 
         if (port.IsFailure)
-            return server.ConvertFailure<StringStream>();
+            return port.ConvertFailure<StringStream>();
 
         var database = await Database.Run(stateMonad, cancellationToken);
 
         if (database.IsFailure)
-            return server.ConvertFailure<StringStream>();
+            return database.ConvertFailure<StringStream>();
 
         var username = await UId.Run(stateMonad, cancellationToken);
 
         if (username.IsFailure)
-            return server.ConvertFailure<StringStream>();
+            return username.ConvertFailure<StringStream>();
 
         var password = await Pwd.Run(stateMonad, cancellationToken);
 
         if (password.IsFailure)
-            return server.ConvertFailure<StringStream>();
+            return password.ConvertFailure<StringStream>();
 
         var s = new StringStream(
             $"Server={server.Value};Port={port.Value};Database={database.Value};Uid={username.Value};Pwd={password.Value};"
@@ -57,16 +57,9 @@ public sealed class CreateMySQLConnectionString : CompoundStep<StringStream>
     public IStep<StringStream> Server { get; set; } = null!;
 
     /// <summary>
-    /// The server port
-    /// </summary>
-    [StepProperty(2)]
-    [DefaultValueExplanation("3306")]
-    public IStep<int> Port { get; set; } = new IntConstant(3306);
-
-    /// <summary>
     /// The database to run the query against
     /// </summary>
-    [StepProperty(3)]
+    [StepProperty(2)]
     [Required]
     [Alias("Db")]
     public IStep<StringStream> Database { get; set; } = null!;
@@ -74,7 +67,7 @@ public sealed class CreateMySQLConnectionString : CompoundStep<StringStream>
     /// <summary>
     /// The username for database access.
     /// </summary>
-    [StepProperty(4)]
+    [StepProperty(3)]
     [Required]
     [Alias("UserId")]
     [Alias("Username")]
@@ -83,10 +76,17 @@ public sealed class CreateMySQLConnectionString : CompoundStep<StringStream>
     /// <summary>
     /// The password for database access.
     /// </summary>
-    [StepProperty(5)]
+    [StepProperty(4)]
     [Required]
     [Alias("Password")]
     public IStep<StringStream> Pwd { get; set; } = null!;
+
+    /// <summary>
+    /// The server port
+    /// </summary>
+    [StepProperty(5)]
+    [DefaultValueExplanation("3306")]
+    public IStep<int> Port { get; set; } = new IntConstant(3306);
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } =
