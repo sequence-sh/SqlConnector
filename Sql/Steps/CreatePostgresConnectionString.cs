@@ -58,7 +58,7 @@ public sealed class CreatePostgresConnectionString : CompoundStep<StringStream>
     /// <summary>
     /// The server port
     /// </summary>
-    [StepProperty(1)]
+    [StepProperty(2)]
     [Required]
     public IStep<int> Port { get; set; } = null!;
 
@@ -74,12 +74,14 @@ public sealed class CreatePostgresConnectionString : CompoundStep<StringStream>
     /// The user id for database access
     /// </summary>
     [StepProperty(4)]
+    [Required]
     public IStep<StringStream> UserId { get; set; } = null!;
 
     /// <summary>
     /// The password for database access.
     /// </summary>
     [StepProperty(5)]
+    [Required]
     public IStep<StringStream> Password { get; set; } = null!;
 
     /// <inheritdoc />
