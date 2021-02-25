@@ -54,7 +54,11 @@ public partial class ExampleTests
             context
         );
 
-        var r = await runner.RunSequenceFromTextAsync(scl, CancellationToken.None);
+        var r = await runner.RunSequenceFromTextAsync(
+            scl,
+            new Dictionary<string, object>(),
+            CancellationToken.None
+        );
 
         r.ShouldBeSuccessful(x => x.ToString()!);
     }
@@ -205,7 +209,8 @@ public partial class ExampleTests
             TestOutputHelper.BuildLogger(),
             SCLSettings.EmptySettings,
             StepFactoryStore.CreateUsingReflection(),
-            context
+            context,
+            new object()
         );
 
         var r = await (step as IStep<Unit>).Run(monad, CancellationToken.None);

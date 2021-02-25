@@ -10,7 +10,7 @@ public sealed record LogSituationSql : LogSituationBase
     private LogSituationSql(string code, LogLevel logLevel) : base(code, logLevel) { }
 
     /// <inheritdoc />
-    public override string GetLocalizedString()
+    protected override string GetLocalizedString()
     {
         var localizedMessage = LogMessages_EN
             .ResourceManager.GetString(Code); //TODO static method to get this

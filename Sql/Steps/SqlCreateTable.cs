@@ -14,7 +14,6 @@ using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Entities;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
-using Reductech.EDR.Core.Internal.Logging;
 using Reductech.EDR.Core.Util;
 using Entity = Reductech.EDR.Core.Entity;
 
@@ -87,10 +86,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
             );
         }
 
-        stateMonad.Logger.LogSituation(
-            LogSituationSql.CommandExecuted,
-            new object[] { rowsAffected }
-        );
+        LogSituationSql.CommandExecuted.Log(stateMonad, this, rowsAffected);
 
         return Unit.Default;
     }
@@ -108,7 +104,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         };
     }
 
-    private Result<Unit, IErrorBuilder> SetCommand(
+    private static Result<Unit, IErrorBuilder> SetCommand(
         Schema schema,
         IDbCommand command,
         DatabaseType databaseType)
@@ -151,7 +147,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
             if (dataType.IsSuccess && multiplicity.IsSuccess)
             {
                 if (index > 0)
-                    sb.Append(",");
+                    sb.Append(',');
 
                 var columnName = Extensions.CheckSqlObjectName(column);
 

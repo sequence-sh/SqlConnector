@@ -7,14 +7,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Microsoft.Extensions.Logging;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Entities;
 using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
-using Reductech.EDR.Core.Internal.Logging;
 using Reductech.EDR.Core.Util;
 using Entity = Reductech.EDR.Core.Entity;
 
@@ -105,7 +103,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
                 shouldQuoteFieldNames,
                 batch,
                 dbCommand,
-                stateMonad.Logger
+                stateMonad
             );
 
             if (setCommandResult.IsFailure)
@@ -124,10 +122,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
                 );
             }
 
-            stateMonad.Logger.LogSituation(
-                LogSituationSql.CommandExecuted,
-                new object[] { rowsAffected }
-            );
+            LogSituationSql.CommandExecuted.Log(stateMonad, this, rowsAffected);
         }
 
         return Unit.Default;
@@ -152,7 +147,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
         bool quoteFieldNames,
         IEnumerable<Entity> entities,
         IDbCommand command,
-        ILogger logger)
+        IStateMonad stateMonad)
     {
         var stringBuilder = new StringBuilder();
         var errors        = new List<IErrorBuilder>();
@@ -200,7 +195,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
                 stringBuilder.Append(", ");
             }
 
-            var entity2 = schema.ApplyToEntity(entity, logger, ErrorBehavior.Fail);
+            var entity2 = schema.ApplyToEntity(entity, this, stateMonad, ErrorBehavior.Fail);
 
             if (entity2.IsFailure)
             {
@@ -210,7 +205,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
 
             if (entity2.Value.HasNoValue) { continue; }
 
-            stringBuilder.Append("(");
+            stringBuilder.Append('(');
             first = true;
 
             foreach (var (name, _) in schema.Properties)

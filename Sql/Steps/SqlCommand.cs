@@ -70,10 +70,7 @@ public sealed class SqlCommand : CompoundStep<Unit>
             );
         }
 
-        stateMonad.Logger.LogSituation(
-            LogSituationSql.CommandExecuted,
-            new object[] { rowsAffected }
-        );
+        LogSituationSql.CommandExecuted.Log(stateMonad, this, rowsAffected);
 
         return Unit.Default;
     }
