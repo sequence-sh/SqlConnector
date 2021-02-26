@@ -210,7 +210,7 @@ public partial class ExampleTests
             SCLSettings.EmptySettings,
             StepFactoryStore.CreateUsingReflection(),
             context,
-            new object()
+            new Dictionary<string, object>()
         );
 
         var r = await (step as IStep<Unit>).Run(monad, CancellationToken.None);
