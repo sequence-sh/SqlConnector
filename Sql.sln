@@ -1,11 +1,23 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31105.61
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sql", "Sql\Sql.csproj", "{124A2B50-3DD7-4E16-AA41-1E68685A9346}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sql", "Sql\Sql.csproj", "{124A2B50-3DD7-4E16-AA41-1E68685A9346}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sql.Tests", "Sql.Tests\Sql.Tests.csproj", "{A640D94E-46A7-4F1E-95BD-AC25CAA7586F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sql.Tests", "Sql.Tests\Sql.Tests.csproj", "{A640D94E-46A7-4F1E-95BD-AC25CAA7586F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{674636AA-4C01-4599-A9D8-EBC35D722232}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		.gitlab-ci.yml = .gitlab-ci.yml
+		CHANGELOG.md = CHANGELOG.md
+		.config\dotnet-tools.json = .config\dotnet-tools.json
+		LICENSE = LICENSE
+		README.md = README.md
+		Sql.sln.DotSettings = Sql.sln.DotSettings
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +27,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{124A2B50-3DD7-4E16-AA41-1E68685A9346}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -44,5 +53,11 @@ Global
 		{A640D94E-46A7-4F1E-95BD-AC25CAA7586F}.Release|x64.Build.0 = Release|Any CPU
 		{A640D94E-46A7-4F1E-95BD-AC25CAA7586F}.Release|x86.ActiveCfg = Release|Any CPU
 		{A640D94E-46A7-4F1E-95BD-AC25CAA7586F}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7A7D390C-EADC-476E-A731-425688A0EC03}
 	EndGlobalSection
 EndGlobal

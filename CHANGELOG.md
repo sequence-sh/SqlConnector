@@ -1,3 +1,7 @@
+# v0.6.0 (2021-03-14)
+
+- Update of Core dependencies only
+
 # v0.5.0 (2021-03-01)
 
 ## Summary of Changes
@@ -13,12 +17,12 @@ This connector supports:
 
 ### Steps
 
-- Added 
-   - CreateConnectionString
-   - SqlCreateSchemaFromTable
-   - SqlCreateTable
-   - SqlInsert
-   - SqlQuery
+- Added
+  - CreateConnectionString
+  - SqlCreateSchemaFromTable
+  - SqlCreateTable
+  - SqlInsert
+  - SqlQuery
 - Added SqlCommand
 
 ## Issues Closed in this Release

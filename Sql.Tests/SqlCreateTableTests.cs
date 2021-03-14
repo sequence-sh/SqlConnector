@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Reductech.EDR.Connectors.Sql.Steps;
+using Reductech.EDR.Core;
 using Reductech.EDR.Core.Entities;
 using Reductech.EDR.Core.Internal.Errors;
 using Reductech.EDR.Core.TestHarness;
@@ -22,15 +23,14 @@ public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
                 "Id",
                 new SchemaProperty
                 {
-                    Type         = SchemaPropertyType.Integer,
-                    Multiplicity = Multiplicity.ExactlyOne
+                    Type = SCLType.Integer, Multiplicity = Multiplicity.ExactlyOne
                 }
             },
             {
                 "Name",
                 new SchemaProperty
                 {
-                    Type = SchemaPropertyType.String, Multiplicity = Multiplicity.UpToOne
+                    Type = SCLType.String, Multiplicity = Multiplicity.UpToOne
                 }
             },
         }

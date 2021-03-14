@@ -172,7 +172,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         return Unit.Default;
 
         static Result<string, IErrorBuilder> TryGetDataType(
-            SchemaPropertyType schemaPropertyType,
+            SCLType schemaPropertyType,
             DatabaseType databaseType)
         {
             switch (databaseType)
@@ -181,13 +181,13 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
                 {
                     return schemaPropertyType switch
                     {
-                        SchemaPropertyType.String  => "text",
-                        SchemaPropertyType.Integer => "integer",
-                        SchemaPropertyType.Double  => "double precision",
-                        SchemaPropertyType.Enum    => "text",
-                        SchemaPropertyType.Bool    => "boolean",
-                        SchemaPropertyType.Date    => "date",
-                        SchemaPropertyType.Entity => ErrorCode_Sql.CouldNotCreateTable
+                        SCLType.String  => "text",
+                        SCLType.Integer => "integer",
+                        SCLType.Double  => "double precision",
+                        SCLType.Enum    => "text",
+                        SCLType.Bool    => "boolean",
+                        SCLType.Date    => "date",
+                        SCLType.Entity => ErrorCode_Sql.CouldNotCreateTable
                             .ToErrorBuilder($"Sql does not support nested entities"),
                         _ => throw new ArgumentOutOfRangeException(
                             nameof(schemaPropertyType),
@@ -202,13 +202,13 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
                 {
                     Result<SqlDataType, IErrorBuilder> sqlDbType = schemaPropertyType switch
                     {
-                        SchemaPropertyType.String  => SqlDataType.NText,
-                        SchemaPropertyType.Integer => SqlDataType.Int,
-                        SchemaPropertyType.Double  => SqlDataType.Float,
-                        SchemaPropertyType.Enum    => SqlDataType.NText,
-                        SchemaPropertyType.Bool    => SqlDataType.Bit,
-                        SchemaPropertyType.Date    => SqlDataType.DateTime2,
-                        SchemaPropertyType.Entity => ErrorCode_Sql.CouldNotCreateTable
+                        SCLType.String  => SqlDataType.NText,
+                        SCLType.Integer => SqlDataType.Int,
+                        SCLType.Double  => SqlDataType.Float,
+                        SCLType.Enum    => SqlDataType.NText,
+                        SCLType.Bool    => SqlDataType.Bit,
+                        SCLType.Date    => SqlDataType.DateTime2,
+                        SCLType.Entity => ErrorCode_Sql.CouldNotCreateTable
                             .ToErrorBuilder($"Sql does not support nested entities"),
                         _ => throw new ArgumentOutOfRangeException(
                             nameof(schemaPropertyType),
@@ -224,13 +224,13 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
                 {
                     Result<MySqlDbType, IErrorBuilder> sqlDbType = schemaPropertyType switch
                     {
-                        SchemaPropertyType.String  => MySqlDbType.Text,
-                        SchemaPropertyType.Integer => MySqlDbType.Int32,
-                        SchemaPropertyType.Double  => MySqlDbType.Float,
-                        SchemaPropertyType.Enum    => MySqlDbType.Text,
-                        SchemaPropertyType.Bool    => MySqlDbType.Bit,
-                        SchemaPropertyType.Date    => MySqlDbType.DateTime,
-                        SchemaPropertyType.Entity => ErrorCode_Sql.CouldNotCreateTable
+                        SCLType.String  => MySqlDbType.Text,
+                        SCLType.Integer => MySqlDbType.Int32,
+                        SCLType.Double  => MySqlDbType.Float,
+                        SCLType.Enum    => MySqlDbType.Text,
+                        SCLType.Bool    => MySqlDbType.Bit,
+                        SCLType.Date    => MySqlDbType.DateTime,
+                        SCLType.Entity => ErrorCode_Sql.CouldNotCreateTable
                             .ToErrorBuilder($"Sql does not support nested entities"),
                         _ => throw new ArgumentOutOfRangeException(
                             nameof(schemaPropertyType),
