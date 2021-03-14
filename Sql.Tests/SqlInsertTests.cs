@@ -32,45 +32,42 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                         "Id",
                         new SchemaProperty()
                         {
-                            Type         = SchemaPropertyType.Integer,
-                            Multiplicity = Multiplicity.ExactlyOne
+                            Type = SCLType.Integer, Multiplicity = Multiplicity.ExactlyOne
                         }
                     },
                     {
                         "Name",
                         new SchemaProperty()
                         {
-                            Type         = SchemaPropertyType.String,
-                            Multiplicity = Multiplicity.UpToOne
+                            Type = SCLType.String, Multiplicity = Multiplicity.UpToOne
                         }
                     },
                     {
                         "TestDouble",
                         new SchemaProperty()
                         {
-                            Type         = SchemaPropertyType.Double,
-                            Multiplicity = Multiplicity.UpToOne
+                            Type = SCLType.Double, Multiplicity = Multiplicity.UpToOne
                         }
                     },
                     {
                         "TestDate",
                         new SchemaProperty()
                         {
-                            Type = SchemaPropertyType.Date, Multiplicity = Multiplicity.UpToOne
+                            Type = SCLType.Date, Multiplicity = Multiplicity.UpToOne
                         }
                     },
                     {
                         "TestBool",
                         new SchemaProperty()
                         {
-                            Type = SchemaPropertyType.Bool, Multiplicity = Multiplicity.UpToOne
+                            Type = SCLType.Bool, Multiplicity = Multiplicity.UpToOne
                         }
                     },
                     {
                         "TestEnum",
                         new SchemaProperty()
                         {
-                            Type         = SchemaPropertyType.Enum,
+                            Type         = SCLType.Enum,
                             Multiplicity = Multiplicity.UpToOne,
                             Values       = new List<string> { "EnumValue", "EnumValue2" },
                             EnumType     = "MyEnum"

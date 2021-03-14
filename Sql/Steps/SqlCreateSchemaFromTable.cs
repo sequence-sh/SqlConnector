@@ -312,7 +312,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         };
     }
 
-    private static Result<SchemaPropertyType, IErrorBuilder> ConvertDataType(
+    private static Result<SCLType, IErrorBuilder> ConvertDataType(
         string dataTypeString,
         string column,
         DatabaseType databaseType)
@@ -337,35 +337,35 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         }
     }
 
-    private static Result<SchemaPropertyType, IErrorBuilder> ConvertPostgresDataType(
+    private static Result<SCLType, IErrorBuilder> ConvertPostgresDataType(
         string dataType,
         string column)
     {
         return dataType.ToLowerInvariant() switch //This list is not exhaustive
         {
-            "bigint" => SchemaPropertyType.Integer,
-            "bit" => SchemaPropertyType.Bool,
-            "bit varying" => SchemaPropertyType.Bool,
-            "boolean" => SchemaPropertyType.Bool,
-            "char" => SchemaPropertyType.String,
-            "character varying" => SchemaPropertyType.String,
-            "character" => SchemaPropertyType.String,
-            "varchar" => SchemaPropertyType.String,
-            "date" => SchemaPropertyType.Date,
-            "double precision" => SchemaPropertyType.Double,
-            "integer" => SchemaPropertyType.Integer,
-            "numeric" => SchemaPropertyType.Double,
-            "decimal" => SchemaPropertyType.Double,
-            "real" => SchemaPropertyType.Double,
-            "smallint" => SchemaPropertyType.Integer,
-            "text" => SchemaPropertyType.String,
-            "time" => SchemaPropertyType.Date,
-            "timestamp" => SchemaPropertyType.Date,
+            "bigint" => SCLType.Integer,
+            "bit" => SCLType.Bool,
+            "bit varying" => SCLType.Bool,
+            "boolean" => SCLType.Bool,
+            "char" => SCLType.String,
+            "character varying" => SCLType.String,
+            "character" => SCLType.String,
+            "varchar" => SCLType.String,
+            "date" => SCLType.Date,
+            "double precision" => SCLType.Double,
+            "integer" => SCLType.Integer,
+            "numeric" => SCLType.Double,
+            "decimal" => SCLType.Double,
+            "real" => SCLType.Double,
+            "smallint" => SCLType.Integer,
+            "text" => SCLType.String,
+            "time" => SCLType.Date,
+            "timestamp" => SCLType.Date,
             _ => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(dataType, column)
         };
     }
 
-    private static Result<SchemaPropertyType, IErrorBuilder> ConvertSqlDataType(
+    private static Result<SCLType, IErrorBuilder> ConvertSqlDataType(
         SqlDataType dataType,
         string column)
     {
@@ -375,19 +375,19 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                 dataType,
                 column
             ),
-            SqlDataType.BigInt => SchemaPropertyType.Integer,
+            SqlDataType.BigInt => SCLType.Integer,
             SqlDataType.Binary => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
                 dataType,
                 column
             ),
-            SqlDataType.Bit            => SchemaPropertyType.Bool,
-            SqlDataType.Char           => SchemaPropertyType.String,
-            SqlDataType.Date           => SchemaPropertyType.Date,
-            SqlDataType.DateTime       => SchemaPropertyType.Date,
-            SqlDataType.DateTime2      => SchemaPropertyType.Date,
-            SqlDataType.DateTimeOffset => SchemaPropertyType.Date,
-            SqlDataType.Decimal        => SchemaPropertyType.Double,
-            SqlDataType.Float          => SchemaPropertyType.Double,
+            SqlDataType.Bit            => SCLType.Bool,
+            SqlDataType.Char           => SCLType.String,
+            SqlDataType.Date           => SCLType.Date,
+            SqlDataType.DateTime       => SCLType.Date,
+            SqlDataType.DateTime2      => SCLType.Date,
+            SqlDataType.DateTimeOffset => SCLType.Date,
+            SqlDataType.Decimal        => SCLType.Double,
+            SqlDataType.Float          => SCLType.Double,
             SqlDataType.Geography => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
                 dataType,
                 column
@@ -404,22 +404,22 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                 dataType,
                 column
             ),
-            SqlDataType.Int           => SchemaPropertyType.Integer,
-            SqlDataType.Money         => SchemaPropertyType.Double,
-            SqlDataType.NChar         => SchemaPropertyType.String,
-            SqlDataType.NText         => SchemaPropertyType.String,
-            SqlDataType.Numeric       => SchemaPropertyType.Double,
-            SqlDataType.NVarChar      => SchemaPropertyType.String,
-            SqlDataType.NVarCharMax   => SchemaPropertyType.String,
-            SqlDataType.Real          => SchemaPropertyType.Double,
-            SqlDataType.SmallDateTime => SchemaPropertyType.Date,
-            SqlDataType.SmallInt      => SchemaPropertyType.Integer,
-            SqlDataType.SmallMoney    => SchemaPropertyType.Double,
-            SqlDataType.SysName       => SchemaPropertyType.String,
-            SqlDataType.Text          => SchemaPropertyType.String,
-            SqlDataType.Time          => SchemaPropertyType.Date,
-            SqlDataType.Timestamp     => SchemaPropertyType.Date,
-            SqlDataType.TinyInt       => SchemaPropertyType.Integer,
+            SqlDataType.Int           => SCLType.Integer,
+            SqlDataType.Money         => SCLType.Double,
+            SqlDataType.NChar         => SCLType.String,
+            SqlDataType.NText         => SCLType.String,
+            SqlDataType.Numeric       => SCLType.Double,
+            SqlDataType.NVarChar      => SCLType.String,
+            SqlDataType.NVarCharMax   => SCLType.String,
+            SqlDataType.Real          => SCLType.Double,
+            SqlDataType.SmallDateTime => SCLType.Date,
+            SqlDataType.SmallInt      => SCLType.Integer,
+            SqlDataType.SmallMoney    => SCLType.Double,
+            SqlDataType.SysName       => SCLType.String,
+            SqlDataType.Text          => SCLType.String,
+            SqlDataType.Time          => SCLType.Date,
+            SqlDataType.Timestamp     => SCLType.Date,
+            SqlDataType.TinyInt       => SCLType.Integer,
             SqlDataType.UniqueIdentifier => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
                 dataType,
                 column
@@ -432,10 +432,10 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                 dataType,
                 column
             ),
-            SqlDataType.VarChar    => SchemaPropertyType.String,
-            SqlDataType.VarCharMax => SchemaPropertyType.String,
-            SqlDataType.Variant    => SchemaPropertyType.String,
-            SqlDataType.Xml        => SchemaPropertyType.String,
+            SqlDataType.VarChar    => SCLType.String,
+            SqlDataType.VarCharMax => SCLType.String,
+            SqlDataType.Variant    => SCLType.String,
+            SqlDataType.Xml        => SCLType.String,
             SqlDataType.XmlNode => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
                 dataType,
                 column

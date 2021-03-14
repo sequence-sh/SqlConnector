@@ -26,16 +26,14 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                         "Id",
                         new SchemaProperty()
                         {
-                            Type         = SchemaPropertyType.Integer,
-                            Multiplicity = Multiplicity.ExactlyOne
+                            Type = SCLType.Integer, Multiplicity = Multiplicity.ExactlyOne
                         }
                     },
                     {
                         "Name",
                         new SchemaProperty()
                         {
-                            Type         = SchemaPropertyType.String,
-                            Multiplicity = Multiplicity.UpToOne
+                            Type = SCLType.String, Multiplicity = Multiplicity.UpToOne
                         }
                     }
                 }
