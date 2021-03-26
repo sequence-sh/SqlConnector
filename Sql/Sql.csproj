@@ -6,7 +6,7 @@
     <RootNamespace>Reductech.EDR.Connectors.Sql</RootNamespace>
     <AssemblyName>Reductech.EDR.Connectors.Sql</AssemblyName>
     <Nullable>enable</Nullable>
-    <Version>0.6.0$(VersionSuffix)</Version>
+    <Version>0.7.0$(VersionSuffix)</Version>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -31,7 +31,7 @@
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="MySqlConnector" Version="1.2.1" />
     <PackageReference Include="Npgsql" Version="5.0.3" />
-    <PackageReference Include="Reductech.EDR.Core" Version="0.6.0" />
+    <PackageReference Include="Reductech.EDR.Core" Version="0.7.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.7" />
   </ItemGroup>

@@ -63,7 +63,8 @@ public sealed class SqlInsert : CompoundStep<Unit>
 
         var schema = await Schema.Run(stateMonad, cancellationToken)
             .Bind(
-                x => Core.Entities.Schema.TryCreateFromEntity(x).MapError(e => e.WithLocation(this))
+                x => EntityConversionHelpers.TryCreateFromEntity<Schema>(x)
+                    .MapError(e => e.WithLocation(this))
             );
 
         if (schema.IsFailure)
