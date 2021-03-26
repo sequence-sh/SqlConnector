@@ -47,7 +47,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         if (databaseType.IsFailure)
             return databaseType.ConvertFailure<Unit>();
 
-        var schema = Core.Entities.Schema.TryCreateFromEntity(entity.Value)
+        var schema = EntityConversionHelpers.TryCreateFromEntity<Schema>(entity.Value)
             .MapError(x => x.WithLocation(this));
 
         if (schema.IsFailure)
