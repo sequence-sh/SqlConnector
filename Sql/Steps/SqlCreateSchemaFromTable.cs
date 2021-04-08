@@ -7,13 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
-using Npgsql.PostgresTypes;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Entities;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
-using Reductech.EDR.Core.Util;
 using Entity = Reductech.EDR.Core.Entity;
 using SqlDataType = Microsoft.SqlServer.Management.SqlParser.Metadata.SqlDataType;
 
@@ -205,16 +203,17 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
             var parseResult =
                 Microsoft.SqlServer.Management.SqlParser.Parser.Parser.Parse(queryResult);
 
-            var schema = parseResult.Script
+            var schemas = parseResult.Script
                 .SelfAndDescendants<SqlCodeObject>(x => x.Children)
                 .OfType<SqlCreateTableStatement>()
-                .EnsureSingle(
-                    ErrorCode_Sql.CouldNotGetCreateTable.ToErrorBuilder(tableName) as IErrorBuilder
-                )
-                .Bind(ToSchema)
-                .Map(x => x.ConvertToEntity());
+                .ToList();
 
-            return schema;
+            if (schemas.Count != 1)
+                return ErrorCode_Sql.CouldNotGetCreateTable.ToErrorBuilder(tableName);
+
+            var entity = ToSchema(schemas.Single()).Map(x => x.ConvertToEntity());
+
+            return entity;
         }
     }
 
