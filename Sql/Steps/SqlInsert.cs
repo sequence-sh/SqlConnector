@@ -250,22 +250,26 @@ public sealed class SqlInsert : CompoundStep<Unit>
             if (entityValue.HasNoValue)
                 return (null, DbType.String);
 
-            var v = entityValue.Value.Match<Result<(object? o, DbType dbType), IErrorBuilder>>(
-                _ => (null, DbType.String),
-                s => (s, DbType.String),
-                i => (i, DbType.Int32),
-                d => (d, DbType.Double),
-                b => (b, DbType.Boolean),
-                e => (e.Value, DbType.String),
-                dt => (dt, DbType.DateTime2),
-                _ => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
+            return entityValue.Value switch
+            {
+                EntityValue.Boolean boolean => (boolean.Value, DbType.Boolean),
+                EntityValue.Date date       => (date.Value, DbType.DateTime2),
+                EntityValue.Double d        => (d.Value, DbType.Double),
+                EntityValue.EnumerationValue enumerationValue => (
+                    enumerationValue.Value.ToString(), DbType.String),
+                EntityValue.Integer integer => (integer.Value, DbType.Int32),
+                EntityValue.NestedEntity => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
                     nameof(Entity),
                     columnName
                 ),
-                _ => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder("Array", columnName)
-            );
-
-            return v;
+                EntityValue.NestedList => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
+                    "Array",
+                    columnName
+                ),
+                EntityValue.Null     => (null, DbType.String),
+                EntityValue.String s => (s.Value, DbType.String),
+                _                    => throw new ArgumentOutOfRangeException()
+            };
         }
     }
 

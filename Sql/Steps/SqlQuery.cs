@@ -73,7 +73,7 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
         }
 
         var array = Extensions.GetEntityEnumerable(dbReader, command, conn, cancellationToken)
-            .ToSequence();
+            .ToSCLArray();
 
         return array;
     }
