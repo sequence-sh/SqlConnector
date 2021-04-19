@@ -38,7 +38,10 @@ public partial class ExampleTests
             $@"SqlCreateSchemaFromTable '{connectionString}' 'MyTable' 'postgres'";
 
         var logger = TestOutputHelper.BuildLogger(LogLevel.Information);
-        var sfs    = StepFactoryStore.CreateUsingReflection(typeof(CreateMsSQLConnectionString));
+
+        var sfs = StepFactoryStore.CreateFromAssemblies(
+            typeof(CreateMsSQLConnectionString).Assembly
+        );
 
         var context = new ExternalContext(
             ExternalContext.Default.FileSystemHelper,
@@ -207,7 +210,7 @@ public partial class ExampleTests
         var monad = new StateMonad(
             TestOutputHelper.BuildLogger(),
             SCLSettings.EmptySettings,
-            StepFactoryStore.CreateUsingReflection(),
+            StepFactoryStore.CreateFromAssemblies(),
             context,
             new Dictionary<string, object>()
         );
