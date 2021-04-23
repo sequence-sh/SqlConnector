@@ -17,7 +17,8 @@ public sealed class CreateMySQLConnectionString : CompoundStep<StringStream>
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {
-        var server = await Server.Run(stateMonad, cancellationToken);
+        var server = await Server.Run(stateMonad, cancellationToken)
+            .Map(x => x.GetStringAsync());
 
         if (server.IsFailure)
             return server.ConvertFailure<StringStream>();
@@ -27,17 +28,18 @@ public sealed class CreateMySQLConnectionString : CompoundStep<StringStream>
         if (port.IsFailure)
             return port.ConvertFailure<StringStream>();
 
-        var database = await Database.Run(stateMonad, cancellationToken);
+        var database =
+            await Database.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (database.IsFailure)
             return database.ConvertFailure<StringStream>();
 
-        var username = await UId.Run(stateMonad, cancellationToken);
+        var username = await UId.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (username.IsFailure)
             return username.ConvertFailure<StringStream>();
 
-        var password = await Pwd.Run(stateMonad, cancellationToken);
+        var password = await Pwd.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (password.IsFailure)
             return password.ConvertFailure<StringStream>();

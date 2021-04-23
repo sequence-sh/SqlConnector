@@ -7,6 +7,7 @@ using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Abstractions;
 using Reductech.EDR.Core.Entities;
+using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Serialization;
 using Reductech.EDR.Core.Steps;
@@ -44,7 +45,6 @@ public partial class ExampleTests
         );
 
         var context = new ExternalContext(
-            ExternalContext.Default.FileSystemHelper,
             ExternalContext.Default.ExternalProcessRunner,
             ExternalContext.Default.Console,
             (DbConnectionFactory.DbConnectionName, DbConnectionFactory.Instance)
@@ -63,7 +63,7 @@ public partial class ExampleTests
             CancellationToken.None
         );
 
-        r.ShouldBeSuccessful(x => x.ToString()!);
+        r.ShouldBeSuccessful();
     }
 
     [Fact(Skip = "skip")]
@@ -78,8 +78,8 @@ public partial class ExampleTests
 
         var schema = new Schema()
         {
-            Name                 = tableName,
-            AllowExtraProperties = false,
+            Name            = tableName,
+            ExtraProperties = ExtraPropertyBehavior.Fail,
             Properties = new Dictionary<string, SchemaProperty>()
             {
                 {
@@ -201,7 +201,6 @@ public partial class ExampleTests
         TestOutputHelper.WriteLine(scl);
 
         var context = new ExternalContext(
-            ExternalContext.Default.FileSystemHelper,
             ExternalContext.Default.ExternalProcessRunner,
             ExternalContext.Default.Console,
             (DbConnectionFactory.DbConnectionName, DbConnectionFactory.Instance)
@@ -217,7 +216,7 @@ public partial class ExampleTests
 
         var r = await (step as IStep<Unit>).Run(monad, CancellationToken.None);
 
-        r.ShouldBeSuccessful(x => x.ToString()!);
+        r.ShouldBeSuccessful();
     }
 }
 

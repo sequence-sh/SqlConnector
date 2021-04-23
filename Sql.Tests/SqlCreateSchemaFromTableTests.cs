@@ -3,6 +3,7 @@ using System.Data;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Entities;
+using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.TestHarness;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 
@@ -18,8 +19,8 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
         {
             var expectedSchema = new Schema()
             {
-                AllowExtraProperties = false,
-                Name                 = "MyTable",
+                ExtraProperties = ExtraPropertyBehavior.Fail,
+                Name            = "MyTable",
                 Properties = new Dictionary<string, SchemaProperty>()
                 {
                     {

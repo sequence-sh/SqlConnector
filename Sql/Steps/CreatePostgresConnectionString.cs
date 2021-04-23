@@ -17,7 +17,7 @@ public sealed class CreatePostgresConnectionString : CompoundStep<StringStream>
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {
-        var host = await Host.Run(stateMonad, cancellationToken);
+        var host = await Host.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (host.IsFailure)
             return host.ConvertFailure<StringStream>();
@@ -27,17 +27,19 @@ public sealed class CreatePostgresConnectionString : CompoundStep<StringStream>
         if (port.IsFailure)
             return port.ConvertFailure<StringStream>();
 
-        var database = await Database.Run(stateMonad, cancellationToken);
+        var database =
+            await Database.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (database.IsFailure)
             return database.ConvertFailure<StringStream>();
 
-        var userId = await UserId.Run(stateMonad, cancellationToken);
+        var userId = await UserId.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (userId.IsFailure)
             return userId.ConvertFailure<StringStream>();
 
-        var password = await Password.Run(stateMonad, cancellationToken);
+        var password =
+            await Password.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (password.IsFailure)
             return password.ConvertFailure<StringStream>();

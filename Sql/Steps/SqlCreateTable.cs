@@ -12,6 +12,7 @@ using MySqlConnector;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Entities;
+using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
 using Reductech.EDR.Core.Util;
@@ -124,10 +125,10 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         else
             sb.AppendLine($"CREATE TABLE {tableName.Value} (");
 
-        if (schema.AllowExtraProperties)
+        if (schema.ExtraProperties == ExtraPropertyBehavior.Allow)
             errors.Add(
                 ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder(
-                    $"Schema has {nameof(schema.AllowExtraProperties)} set to true"
+                    $"Schema has {nameof(schema.ExtraProperties)} set to 'Allow'"
                 )
             );
 
