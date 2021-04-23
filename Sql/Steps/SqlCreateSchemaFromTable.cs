@@ -10,6 +10,7 @@ using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Entities;
+using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
 using Entity = Reductech.EDR.Core.Entity;
@@ -179,7 +180,9 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
 
             Schema schema = new()
             {
-                Name = tableName, AllowExtraProperties = false, Properties = properties
+                Name            = tableName,
+                ExtraProperties = ExtraPropertyBehavior.Fail,
+                Properties      = properties
             };
 
             return schema.ConvertToEntity();
@@ -305,9 +308,9 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
 
         return new Schema
         {
-            AllowExtraProperties = false,
-            Name                 = statement.Name.ObjectName.Value,
-            Properties           = schemaProperties,
+            ExtraProperties = ExtraPropertyBehavior.Fail,
+            Name            = statement.Name.ObjectName.Value,
+            Properties      = schemaProperties,
         };
     }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Entities;
+using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Steps;
 using Reductech.EDR.Core.TestHarness;
@@ -24,8 +25,8 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
 
             var schema = new Schema()
             {
-                Name                 = tableName,
-                AllowExtraProperties = false,
+                Name            = tableName,
+                ExtraProperties = ExtraPropertyBehavior.Fail,
                 Properties = new Dictionary<string, SchemaProperty>()
                 {
                     {
