@@ -48,7 +48,7 @@ public sealed class CreateMySQLConnectionString : CompoundStep<Entity>
         var connectionString =
             $"Server={server.Value};Port={port.Value};Database={database.Value};Uid={username.Value};Pwd={password.Value};";
 
-        var databaseConnection = new DatabaseConnection
+        var databaseConnection = new DatabaseConnectionMetadata
         {
             ConnectionString = connectionString, DatabaseType = DatabaseType.MsSql
         };

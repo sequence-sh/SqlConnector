@@ -15,7 +15,7 @@ public partial class OpenConnectionTests : StepTestBase<OpenConnection, Unit>
     {
         get
         {
-            var connection = new DatabaseConnection()
+            var connection = new DatabaseConnectionMetadata()
             {
                 ConnectionString =
                     "Server=Server;Port=1234;Database=Database;Uid=UserName;Pwd=Password;",
@@ -26,7 +26,10 @@ public partial class OpenConnectionTests : StepTestBase<OpenConnection, Unit>
                 "Open Connection",
                 new OpenConnection() { Connection = Constant(connection) },
                 Unit.Default
-            ).WithExpectedFinalState(DatabaseConnection.DatabaseConnectionKey, connection);
+            ).WithExpectedFinalState(
+                DatabaseConnectionMetadata.DatabaseConnectionVariableName.Name,
+                connection
+            );
         }
     }
 }

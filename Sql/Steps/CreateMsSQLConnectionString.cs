@@ -82,7 +82,7 @@ public sealed class CreateMsSQLConnectionString : CompoundStep<Entity>
             cs += "Integrated Security=true;";
         }
 
-        var databaseConnection = new DatabaseConnection()
+        var databaseConnection = new DatabaseConnectionMetadata()
         {
             ConnectionString = cs, DatabaseType = DatabaseType.MsSql
         };

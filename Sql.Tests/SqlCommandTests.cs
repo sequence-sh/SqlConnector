@@ -5,6 +5,7 @@ using Reductech.EDR.Core.Internal.Errors;
 using Reductech.EDR.Core.TestHarness;
 using Reductech.EDR.Core.Util;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
+using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
@@ -17,58 +18,58 @@ public partial class SqlCommandTests : StepTestBase<SqlCommand, Unit>
         get
         {
             yield return new StepCase(
-                "Sql Lite command",
-                new SqlCommand()
-                {
-                    ConnectionString = Constant(@"My Connection String"),
-                    Command          = Constant(@"My Command String"),
-                    DatabaseType     = Constant(DatabaseType.SQLite)
-                },
-                Unit.Default,
-                "Command executed with 5 rows affected."
-            ).WithContextMock(
-                DbConnectionFactory.DbConnectionName,
-                mr =>
-                {
-                    var factory =
-                        DbMockHelper.SetupConnectionFactoryForCommand(
-                            mr,
-                            DatabaseType.SQLite,
-                            "My Connection String",
-                            "My Command String",
-                            5
-                        );
+                    "Sql Lite command",
+                    new SqlCommand()
+                    {
+                        Connection = GetConnectionMetadata(DatabaseType.SQLite),
+                        Command    = Constant(@"My Command String")
+                    },
+                    Unit.Default,
+                    "Command executed with 5 rows affected."
+                ).WithDbConnectionInState(DatabaseType.SQLite)
+                .WithContextMock(
+                    DbConnectionFactory.DbConnectionName,
+                    mr =>
+                    {
+                        var factory =
+                            DbMockHelper.SetupConnectionFactoryForCommand(
+                                mr,
+                                DatabaseType.SQLite,
+                                TestConnectionString,
+                                "My Command String",
+                                5
+                            );
 
-                    return factory;
-                }
-            );
+                        return factory;
+                    }
+                );
 
             yield return new StepCase(
-                "MSSSQL command",
-                new SqlCommand()
-                {
-                    ConnectionString = Constant(@"My Connection String"),
-                    Command          = Constant(@"My Command String"),
-                    DatabaseType     = Constant(DatabaseType.MsSql)
-                },
-                Unit.Default,
-                "Command executed with 5 rows affected."
-            ).WithContextMock(
-                DbConnectionFactory.DbConnectionName,
-                mr =>
-                {
-                    var factory =
-                        DbMockHelper.SetupConnectionFactoryForCommand(
-                            mr,
-                            DatabaseType.MsSql,
-                            "My Connection String",
-                            "My Command String",
-                            5
-                        );
+                    "MSSSQL command",
+                    new SqlCommand()
+                    {
+                        Connection = GetConnectionMetadata(DatabaseType.MsSql),
+                        Command    = Constant(@"My Command String")
+                    },
+                    Unit.Default,
+                    "Command executed with 5 rows affected."
+                ).WithDbConnectionInState(DatabaseType.MsSql)
+                .WithContextMock(
+                    DbConnectionFactory.DbConnectionName,
+                    mr =>
+                    {
+                        var factory =
+                            DbMockHelper.SetupConnectionFactoryForCommand(
+                                mr,
+                                DatabaseType.MsSql,
+                                TestConnectionString,
+                                "My Command String",
+                                5
+                            );
 
-                    return factory;
-                }
-            );
+                        return factory;
+                    }
+                );
         }
     }
 
@@ -81,41 +82,43 @@ public partial class SqlCommandTests : StepTestBase<SqlCommand, Unit>
                 "External context not set",
                 new SqlCommand()
                 {
-                    ConnectionString = Constant(@"My Connection String"),
-                    Command          = Constant(@"My Command String"),
-                    DatabaseType     = Constant(DatabaseType.SQLite)
+                    Connection = GetConnectionMetadata(DatabaseType.SQLite),
+                    Command    = Constant(@"My Command String"),
                 },
                 ErrorCode.MissingContext.ToErrorBuilder(nameof(IDbConnectionFactory))
             );
 
             yield return new ErrorCase(
-                "Sql Error",
-                new SqlCommand
-                {
-                    ConnectionString = Constant(@"My Connection String"),
-                    Command          = Constant(@"My Command String"),
-                    DatabaseType     = Constant(DatabaseType.SQLite)
-                },
-                ErrorCode_Sql.SqlError.ToErrorBuilder("Test Error")
-            ).WithContextMock(
-                DbConnectionFactory.DbConnectionName,
-                mr =>
-                {
-                    var factory =
-                        DbMockHelper.SetupConnectionFactoryErrorForCommand(
-                            mr,
-                            DatabaseType.SQLite,
-                            "My Connection String",
-                            "My Command String",
-                            new Exception("Test Error")
-                        );
+                    "Sql Error",
+                    new SqlCommand
+                    {
+                        Connection = GetConnectionMetadata(DatabaseType.SQLite),
+                        Command    = Constant(@"My Command String")
+                    },
+                    ErrorCode_Sql.SqlError.ToErrorBuilder("Test Error")
+                ).WithDbConnectionInState(DatabaseType.SQLite)
+                .WithContextMock(
+                    DbConnectionFactory.DbConnectionName,
+                    mr =>
+                    {
+                        var factory =
+                            DbMockHelper.SetupConnectionFactoryErrorForCommand(
+                                mr,
+                                DatabaseType.SQLite,
+                                TestConnectionString,
+                                "My Command String",
+                                new Exception("Test Error")
+                            );
 
-                    return factory;
-                }
-            );
+                        return factory;
+                    }
+                );
 
             foreach (var errorCase in base.ErrorCases)
-                yield return errorCase;
+            {
+                if (errorCase.Name != "Test Error Message: 'Connection Error'")
+                    yield return errorCase;
+            }
         }
     }
 }

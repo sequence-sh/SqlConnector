@@ -8,6 +8,7 @@ using Reductech.EDR.Core.Internal.Errors;
 using Reductech.EDR.Core.TestHarness;
 using Reductech.EDR.Core.Util;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
+using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
@@ -46,20 +47,19 @@ public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
                         "Create a table",
                         new SqlCreateTable
                         {
-                            ConnectionString = Constant("MyConnectionString"),
-                            DatabaseType     = Constant(DatabaseType.SQLite),
-                            Schema           = Constant(TestSchema.ConvertToEntity())
+                            Connection = GetConnectionMetadata(DatabaseType.SQLite),
+                            Schema     = Constant(TestSchema.ConvertToEntity())
                         },
                         Unit.Default,
                         "Command executed with 1 rows affected."
-                    )
+                    ).WithDbConnectionInState(DatabaseType.SQLite)
                     .WithContextMock(
                         DbConnectionFactory.DbConnectionName,
                         mr =>
                             DbMockHelper.SetupConnectionFactoryForCommand(
                                 mr,
                                 DatabaseType.SQLite,
-                                "MyConnectionString",
+                                TestConnectionString,
                                 "CREATE TABLE \"MyTable\" (\r\n\"Id\" INT NOT NULL\r\n,\"Name\" NTEXT NULL\r\n)\r\n",
                                 1
                             )
@@ -77,38 +77,37 @@ public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
                 "External context not set",
                 new SqlCreateTable
                 {
-                    ConnectionString = Constant(@"My Connection String"),
-                    Schema           = Constant(TestSchema.ConvertToEntity()),
-                    DatabaseType     = Constant(DatabaseType.SQLite)
+                    Connection = GetConnectionMetadata(DatabaseType.SQLite),
+                    Schema     = Constant(TestSchema.ConvertToEntity()),
                 },
                 ErrorCode.MissingContext.ToErrorBuilder(nameof(IDbConnectionFactory))
-            );
+            ).WithDbConnectionInState(DatabaseType.SQLite);
 
             yield return new ErrorCase(
-                "Sql Error",
-                new SqlCreateTable
-                {
-                    ConnectionString = Constant(@"My Connection String"),
-                    Schema           = Constant(TestSchema.ConvertToEntity()),
-                    DatabaseType     = Constant(DatabaseType.SQLite)
-                },
-                ErrorCode_Sql.SqlError.ToErrorBuilder("Test Error")
-            ).WithContextMock(
-                DbConnectionFactory.DbConnectionName,
-                mr =>
-                {
-                    var factory =
-                        DbMockHelper.SetupConnectionFactoryErrorForCommand(
-                            mr,
-                            DatabaseType.SQLite,
-                            "My Connection String",
-                            "CREATE TABLE \"MyTable\" (\r\n\"Id\" INT NOT NULL\r\n,\"Name\" NTEXT NULL\r\n)\r\n",
-                            new Exception("Test Error")
-                        );
+                    "Sql Error",
+                    new SqlCreateTable
+                    {
+                        Connection = GetConnectionMetadata(DatabaseType.SQLite),
+                        Schema     = Constant(TestSchema.ConvertToEntity()),
+                    },
+                    ErrorCode_Sql.SqlError.ToErrorBuilder("Test Error")
+                ).WithDbConnectionInState(DatabaseType.SQLite)
+                .WithContextMock(
+                    DbConnectionFactory.DbConnectionName,
+                    mr =>
+                    {
+                        var factory =
+                            DbMockHelper.SetupConnectionFactoryErrorForCommand(
+                                mr,
+                                DatabaseType.SQLite,
+                                TestConnectionString,
+                                "CREATE TABLE \"MyTable\" (\r\n\"Id\" INT NOT NULL\r\n,\"Name\" NTEXT NULL\r\n)\r\n",
+                                new Exception("Test Error")
+                            );
 
-                    return factory;
-                }
-            );
+                        return factory;
+                    }
+                );
 
             foreach (var errorCase in base.ErrorCases)
                 yield return errorCase;

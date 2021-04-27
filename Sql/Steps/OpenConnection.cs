@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -24,7 +26,12 @@ public class OpenConnection : CompoundStep<Unit>
         if (connection.IsFailure)
             return connection.ConvertFailure<Unit>();
 
-        var r = await DatabaseConnection.TrySetConnection(connection.Value, stateMonad, this);
+        var r = await DatabaseConnectionMetadata.TrySetConnection(
+                connection.Value,
+                stateMonad,
+                this
+            )
+            .Map(x => Unit.Default);
 
         return r;
     }
@@ -32,8 +39,24 @@ public class OpenConnection : CompoundStep<Unit>
     [StepProperty(1)][Required] public IStep<Entity> Connection { get; set; } = null!;
 
     /// <inheritdoc />
-    public override IStepFactory StepFactory { get; } =
-        new SimpleStepFactory<OpenConnection, Unit>();
+    public override IStepFactory StepFactory => OpenConnectionStepFactory.Instance;
+
+    private sealed class OpenConnectionStepFactory : SimpleStepFactory<OpenConnection, Unit>
+    {
+        private OpenConnectionStepFactory() { }
+
+        public static SimpleStepFactory<OpenConnection, Unit> Instance { get; } =
+            new OpenConnectionStepFactory();
+
+        /// <inheritdoc />
+        public override IEnumerable<Type> ExtraEnumTypes
+        {
+            get
+            {
+                yield return typeof(DatabaseType);
+            }
+        }
+    }
 }
 
 }

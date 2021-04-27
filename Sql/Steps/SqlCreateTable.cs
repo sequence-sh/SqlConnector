@@ -31,22 +31,21 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {
-        var connectionString =
-            await ConnectionString.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
-
-        if (connectionString.IsFailure)
-            return connectionString.ConvertFailure<Unit>();
-
         var entity =
             await Schema.Run(stateMonad, cancellationToken);
 
         if (entity.IsFailure)
             return entity.ConvertFailure<Unit>();
 
-        var databaseType = await DatabaseType.Run(stateMonad, cancellationToken);
+        var databaseConnectionMetadata = await DatabaseConnectionMetadata.GetOrCreate(
+            Connection,
+            stateMonad,
+            this,
+            cancellationToken
+        );
 
-        if (databaseType.IsFailure)
-            return databaseType.ConvertFailure<Unit>();
+        if (databaseConnectionMetadata.IsFailure)
+            return databaseConnectionMetadata.ConvertFailure<Unit>();
 
         var schema = EntityConversionHelpers.TryCreateFromEntity<Schema>(entity.Value)
             .MapError(x => x.WithLocation(this));
@@ -60,16 +59,18 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         if (factory.IsFailure)
             return factory.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
 
-        using IDbConnection conn = factory.Value.GetDatabaseConnection(
-            databaseType.Value,
-            connectionString.Value
-        );
+        using IDbConnection conn =
+            factory.Value.GetDatabaseConnection(databaseConnectionMetadata.Value);
 
         conn.Open();
 
         using var dbCommand = conn.CreateCommand();
 
-        var setCommandResult = SetCommand(schema.Value, dbCommand, databaseType.Value);
+        var setCommandResult = SetCommand(
+            schema.Value,
+            dbCommand,
+            databaseConnectionMetadata.Value.DatabaseType
+        );
 
         if (setCommandResult.IsFailure)
             return setCommandResult.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
@@ -92,15 +93,33 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         return Unit.Default;
     }
 
+    /// <summary>
+    /// The table to create a schema from
+    /// </summary>
+    [StepProperty(order: 1)]
+    [Required]
+    public IStep<Entity> Schema { get; set; } = null!;
+
+    /// <summary>
+    /// The Connection String
+    /// </summary>
+    [StepProperty(order: 2)]
+    [DefaultValueExplanation("The Most Recent Connection")]
+    public IStep<Entity>? Connection { get; set; } = null;
+
+    /// <inheritdoc />
+    public override IStepFactory StepFactory { get; } =
+        new SimpleStepFactory<SqlCreateTable, Unit>();
+
     private static bool ShouldQuoteNames(DatabaseType databaseType)
     {
         return databaseType switch
         {
-            Sql.DatabaseType.SQLite => true,
-            Sql.DatabaseType.MsSql => true,
-            Sql.DatabaseType.Postgres => true,
-            Sql.DatabaseType.MySql => false,
-            Sql.DatabaseType.MariaDb => false,
+            DatabaseType.SQLite => true,
+            DatabaseType.MsSql => true,
+            DatabaseType.Postgres => true,
+            DatabaseType.MySql => false,
+            DatabaseType.MariaDb => false,
             _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
         };
     }
@@ -178,7 +197,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         {
             switch (databaseType)
             {
-                case Sql.DatabaseType.Postgres:
+                case DatabaseType.Postgres:
                 {
                     return schemaPropertyType switch
                     {
@@ -189,7 +208,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
                         SCLType.Bool    => "boolean",
                         SCLType.Date    => "date",
                         SCLType.Entity => ErrorCode_Sql.CouldNotCreateTable
-                            .ToErrorBuilder($"Sql does not support nested entities"),
+                            .ToErrorBuilder("Sql does not support nested entities"),
                         _ => throw new ArgumentOutOfRangeException(
                             nameof(schemaPropertyType),
                             schemaPropertyType,
@@ -198,8 +217,8 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
                     };
                 }
 
-                case Sql.DatabaseType.SQLite:
-                case Sql.DatabaseType.MySql:
+                case DatabaseType.SQLite:
+                case DatabaseType.MySql:
                 {
                     Result<SqlDataType, IErrorBuilder> sqlDbType = schemaPropertyType switch
                     {
@@ -210,7 +229,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
                         SCLType.Bool    => SqlDataType.Bit,
                         SCLType.Date    => SqlDataType.DateTime2,
                         SCLType.Entity => ErrorCode_Sql.CouldNotCreateTable
-                            .ToErrorBuilder($"Sql does not support nested entities"),
+                            .ToErrorBuilder("Sql does not support nested entities"),
                         _ => throw new ArgumentOutOfRangeException(
                             nameof(schemaPropertyType),
                             schemaPropertyType,
@@ -220,8 +239,8 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
 
                     return sqlDbType.Map(x => x.ToString().ToUpperInvariant());
                 }
-                case Sql.DatabaseType.MsSql:
-                case Sql.DatabaseType.MariaDb:
+                case DatabaseType.MsSql:
+                case DatabaseType.MariaDb:
                 {
                     Result<MySqlDbType, IErrorBuilder> sqlDbType = schemaPropertyType switch
                     {
@@ -232,7 +251,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
                         SCLType.Bool    => MySqlDbType.Bit,
                         SCLType.Date    => MySqlDbType.DateTime,
                         SCLType.Entity => ErrorCode_Sql.CouldNotCreateTable
-                            .ToErrorBuilder($"Sql does not support nested entities"),
+                            .ToErrorBuilder("Sql does not support nested entities"),
                         _ => throw new ArgumentOutOfRangeException(
                             nameof(schemaPropertyType),
                             schemaPropertyType,
@@ -269,33 +288,6 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
             };
         }
     }
-
-    /// <summary>
-    /// The Connection String
-    /// </summary>
-    [StepProperty(order: 1)]
-    [Required]
-    public IStep<StringStream> ConnectionString { get; set; } = null!;
-
-    /// <summary>
-    /// The table to create a schema from
-    /// </summary>
-    [StepProperty(order: 2)]
-    [Required]
-    public IStep<Entity> Schema { get; set; } = null!;
-
-    /// <summary>
-    /// The Database Type to connect to
-    /// </summary>
-    [StepProperty(3)]
-    [DefaultValueExplanation("SQL")]
-    [Alias("DB")]
-    public IStep<DatabaseType> DatabaseType { get; set; } =
-        new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
-
-    /// <inheritdoc />
-    public override IStepFactory StepFactory { get; } =
-        new SimpleStepFactory<SqlCreateTable, Unit>();
 }
 
 }

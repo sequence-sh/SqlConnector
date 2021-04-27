@@ -7,6 +7,7 @@ using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core.Steps;
 using Reductech.EDR.Core.Util;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
+using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
@@ -31,14 +32,13 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
                         {
                             Array = new SqlQuery()
                             {
-                                ConnectionString = Constant(@"My Connection String"),
-                                Query            = Constant(@"My Query String"),
-                                DatabaseType     = Constant(DatabaseType.SQLite)
+                                Connection = GetConnectionMetadata(DatabaseType.SQLite),
+                                Query      = Constant(@"My Query String")
                             },
                             Action = new Print<Entity>() { Value = GetEntityVariable }
                         },
                         Unit.Default
-                    )
+                    ).WithDbConnectionInState(DatabaseType.SQLite)
                     .WithConsoleAction(
                         x => x.Setup(c => c.WriteLine("(Name: \"Mark\" Id: \"500\")"))
                     )
@@ -53,7 +53,7 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
                                 DbMockHelper.SetupConnectionFactoryForQuery(
                                     mr,
                                     DatabaseType.SQLite,
-                                    "My Connection String",
+                                    TestConnectionString,
                                     "My Query String",
                                     dt
                                 );
@@ -73,30 +73,30 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
         get
         {
             yield return new ErrorCase(
-                    "Sql Error",
-                    new SqlQuery()
-                    {
-                        ConnectionString = Constant(@"My Connection String"),
-                        Query            = Constant(@"My Query String"),
-                        DatabaseType     = Constant(DatabaseType.SQLite)
-                    },
-                    ErrorCode_Sql.SqlError.ToErrorBuilder("Test Error")
-                ).WithContextMock(
-                    DbConnectionFactory.DbConnectionName,
-                    mr =>
-                    {
-                        var factory =
-                            DbMockHelper.SetupConnectionFactoryErrorForQuery(
-                                mr,
-                                DatabaseType.SQLite,
-                                "My Connection String",
-                                "My Query String",
-                                new Exception("Test Error")
-                            );
+                        "Sql Error",
+                        new SqlQuery()
+                        {
+                            Connection = GetConnectionMetadata(DatabaseType.SQLite),
+                            Query      = Constant(@"My Query String")
+                        },
+                        ErrorCode_Sql.SqlError.ToErrorBuilder("Test Error")
+                    ).WithDbConnectionInState(DatabaseType.SQLite)
+                    .WithContextMock(
+                        DbConnectionFactory.DbConnectionName,
+                        mr =>
+                        {
+                            var factory =
+                                DbMockHelper.SetupConnectionFactoryErrorForQuery(
+                                    mr,
+                                    DatabaseType.SQLite,
+                                    TestConnectionString,
+                                    "My Query String",
+                                    new Exception("Test Error")
+                                );
 
-                        return factory;
-                    }
-                )
+                            return factory;
+                        }
+                    )
                 ;
 
             foreach (var errorCase in base.ErrorCases)

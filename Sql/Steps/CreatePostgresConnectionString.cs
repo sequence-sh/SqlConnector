@@ -48,7 +48,7 @@ public sealed class CreatePostgresConnectionString : CompoundStep<Entity>
         var connectionString =
             $"User ID={userId.Value};Password={password.Value};Host={host.Value};Port={port.Value};Database={database.Value};";
 
-        var databaseConnection = new DatabaseConnection()
+        var databaseConnection = new DatabaseConnectionMetadata()
         {
             ConnectionString = connectionString, DatabaseType = DatabaseType.Postgres
         };

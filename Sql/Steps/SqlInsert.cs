@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using MoreLinq;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Entities;
@@ -29,23 +30,21 @@ public sealed class SqlInsert : CompoundStep<Unit>
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {
-        var connectionString =
-            await ConnectionString.Run(stateMonad, cancellationToken)
-                .Map(x => x.GetStringAsync());
-
-        if (connectionString.IsFailure)
-            return connectionString.ConvertFailure<Unit>();
-
         var entities = await
             Entities.Run(stateMonad, cancellationToken);
 
         if (entities.IsFailure)
             return entities.ConvertFailure<Unit>();
 
-        var databaseType = await DatabaseType.Run(stateMonad, cancellationToken);
+        var databaseConnectionMetadata = await DatabaseConnectionMetadata.GetOrCreate(
+            Connection,
+            stateMonad,
+            this,
+            cancellationToken
+        );
 
-        if (databaseType.IsFailure)
-            return databaseType.ConvertFailure<Unit>();
+        if (databaseConnectionMetadata.IsFailure)
+            return databaseConnectionMetadata.ConvertFailure<Unit>();
 
         string? postgresSchema = null;
 
@@ -81,18 +80,16 @@ public sealed class SqlInsert : CompoundStep<Unit>
         if (elements.IsFailure)
             return elements.ConvertFailure<Unit>();
 
-        IDbConnection conn = factory.Value.GetDatabaseConnection(
-            databaseType.Value,
-            connectionString.Value
-        );
+        IDbConnection conn = factory.Value.GetDatabaseConnection(databaseConnectionMetadata.Value);
 
         conn.Open();
         const int maxQueryParameters = 2099;
         var       batchSize          = maxQueryParameters / schema.Value.Properties.Count;
 
-        var batches = MoreLinq.MoreEnumerable.Batch(elements.Value, batchSize);
+        var batches = MoreEnumerable.Batch(elements.Value, batchSize);
 
-        var shouldQuoteFieldNames = ShouldQuoteFieldNames(databaseType.Value);
+        var shouldQuoteFieldNames =
+            ShouldQuoteFieldNames(databaseConnectionMetadata.Value.DatabaseType);
 
         foreach (var batch in batches)
         {
@@ -129,15 +126,48 @@ public sealed class SqlInsert : CompoundStep<Unit>
         return Unit.Default;
     }
 
+    /// <summary>
+    /// The entities to insert
+    /// </summary>
+    [StepProperty(order: 1)]
+    [Required]
+    [Alias("Sql")]
+    public IStep<Array<Entity>> Entities { get; set; } = null!;
+
+    /// <summary>
+    /// The schema that the data must match
+    /// </summary>
+    [StepProperty(order: 2)]
+    [Required]
+    public IStep<Entity> Schema { get; set; } = null!;
+
+    /// <summary>
+    /// The schema this table belongs to, if postgres
+    /// </summary>
+    [StepProperty(3)]
+    [DefaultValueExplanation("No schema")]
+    public IStep<StringStream>? PostgresSchema { get; set; } = null;
+
+    /// <summary>
+    /// The Connection String
+    /// </summary>
+    [StepProperty(order: 4)]
+    [DefaultValueExplanation("The Most Recent Connection")]
+    public IStep<Entity>? Connection { get; set; } = null;
+
+    /// <inheritdoc />
+    public override IStepFactory StepFactory { get; } =
+        new SimpleStepFactory<SqlInsert, Unit>();
+
     private static bool ShouldQuoteFieldNames(DatabaseType databaseType)
     {
         return databaseType switch
         {
-            Sql.DatabaseType.SQLite => false,
-            Sql.DatabaseType.MsSql => false,
-            Sql.DatabaseType.Postgres => true,
-            Sql.DatabaseType.MySql => false,
-            Sql.DatabaseType.MariaDb => false,
+            DatabaseType.SQLite => false,
+            DatabaseType.MsSql => false,
+            DatabaseType.Postgres => true,
+            DatabaseType.MySql => false,
+            DatabaseType.MariaDb => false,
             _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
         };
     }
@@ -272,48 +302,6 @@ public sealed class SqlInsert : CompoundStep<Unit>
             };
         }
     }
-
-    /// <summary>
-    /// The Connection String
-    /// </summary>
-    [StepProperty(order: 1)]
-    [Required]
-    public IStep<StringStream> ConnectionString { get; set; } = null!;
-
-    /// <summary>
-    /// The entities to insert
-    /// </summary>
-    [StepProperty(order: 2)]
-    [Required]
-    [Alias("Sql")]
-    public IStep<Array<Entity>> Entities { get; set; } = null!;
-
-    /// <summary>
-    /// The schema that the data must match
-    /// </summary>
-    [StepProperty(order: 3)]
-    [Required]
-    public IStep<Entity> Schema { get; set; } = null!;
-
-    /// <summary>
-    /// The Database Type to connect to
-    /// </summary>
-    [StepProperty(4)]
-    [DefaultValueExplanation("Sql")]
-    [Alias("DB")]
-    public IStep<DatabaseType> DatabaseType { get; set; } =
-        new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
-
-    /// <summary>
-    /// The schema this table belongs to, if postgres
-    /// </summary>
-    [StepProperty(5)]
-    [DefaultValueExplanation("No schema")]
-    public IStep<StringStream>? PostgresSchema { get; set; } = null;
-
-    /// <inheritdoc />
-    public override IStepFactory StepFactory { get; } =
-        new SimpleStepFactory<SqlInsert, Unit>();
 }
 
 }

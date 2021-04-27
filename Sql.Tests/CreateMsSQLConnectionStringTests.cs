@@ -26,7 +26,7 @@ public partial class
                     UserName = Constant("UserName"),
                 },
                 EntityConversionHelpers.ConvertToEntity(
-                    new DatabaseConnection()
+                    new DatabaseConnectionMetadata()
                     {
                         ConnectionString =
                             "Server=Server;Database=Database;User Id=UserName;Password=Password;",
@@ -42,7 +42,7 @@ public partial class
                     Database = Constant("Database"), Server = Constant("Server"),
                 },
                 EntityConversionHelpers.ConvertToEntity(
-                    new DatabaseConnection()
+                    new DatabaseConnectionMetadata()
                     {
                         ConnectionString =
                             "Server=Server;Database=Database;Integrated Security=true;",
