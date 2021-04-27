@@ -6,48 +6,56 @@ using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
+using Entity = Reductech.EDR.Core.Entity;
 
 namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
-public sealed class CreatePostgresConnectionString : CompoundStep<StringStream>
+public sealed class CreatePostgresConnectionString : CompoundStep<Entity>
 {
     /// <inheritdoc />
-    protected override async Task<Result<StringStream, IError>> Run(
+    protected override async Task<Result<Entity, IError>> Run(
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {
         var host = await Host.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (host.IsFailure)
-            return host.ConvertFailure<StringStream>();
+            return host.ConvertFailure<Entity>();
 
         var port = await Port.Run(stateMonad, cancellationToken);
 
         if (port.IsFailure)
-            return port.ConvertFailure<StringStream>();
+            return port.ConvertFailure<Entity>();
 
         var database =
             await Database.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (database.IsFailure)
-            return database.ConvertFailure<StringStream>();
+            return database.ConvertFailure<Entity>();
 
         var userId = await UserId.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (userId.IsFailure)
-            return userId.ConvertFailure<StringStream>();
+            return userId.ConvertFailure<Entity>();
 
         var password =
             await Password.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (password.IsFailure)
-            return password.ConvertFailure<StringStream>();
+            return password.ConvertFailure<Entity>();
 
-        var result =
+        var connectionString =
             $"User ID={userId.Value};Password={password.Value};Host={host.Value};Port={port.Value};Database={database.Value};";
 
-        return new StringStream(result);
+        var databaseConnection = new DatabaseConnection()
+        {
+            ConnectionString = connectionString, DatabaseType = DatabaseType.Postgres
+        };
+
+        var entity = EntityConversionHelpers.ConvertToEntity(databaseConnection);
+
+        return entity;
     }
 
     /// <summary>
@@ -88,7 +96,7 @@ public sealed class CreatePostgresConnectionString : CompoundStep<StringStream>
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } =
-        new SimpleStepFactory<CreatePostgresConnectionString, StringStream>();
+        new SimpleStepFactory<CreatePostgresConnectionString, Entity>();
 }
 
 }

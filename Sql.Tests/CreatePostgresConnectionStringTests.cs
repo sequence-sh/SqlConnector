@@ -7,7 +7,7 @@ namespace Reductech.EDR.Connectors.Sql.Tests
 {
 
 public partial class
-    CreatePostgresConnectionStringTests : StepTestBase<CreatePostgresConnectionString, StringStream>
+    CreatePostgresConnectionStringTests : StepTestBase<CreatePostgresConnectionString, Entity>
 {
     /// <inheritdoc />
     protected override IEnumerable<StepCase> StepCases
@@ -24,7 +24,14 @@ public partial class
                     Port     = StaticHelpers.Constant(123),
                     UserId   = StaticHelpers.Constant("User")
                 },
-                "User ID=User;Password=Password;Host=Host;Port=123;Database=Database;"
+                EntityConversionHelpers.ConvertToEntity(
+                    new DatabaseConnection()
+                    {
+                        ConnectionString =
+                            "User ID=User;Password=Password;Host=Host;Port=123;Database=Database;",
+                        DatabaseType = DatabaseType.Postgres
+                    }
+                )
             );
         }
     }

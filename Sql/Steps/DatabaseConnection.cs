@@ -12,7 +12,7 @@ namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
 [Serializable]
-public class DatabaseConnection
+public class DatabaseConnection : IEntityConvertible
 {
     public const string DatabaseConnectionKey = "ReductechDatabaseConnection";
 

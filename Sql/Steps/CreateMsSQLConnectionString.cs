@@ -6,6 +6,7 @@ using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
+using Entity = Reductech.EDR.Core.Entity;
 
 namespace Reductech.EDR.Connectors.Sql.Steps
 {
@@ -13,22 +14,22 @@ namespace Reductech.EDR.Connectors.Sql.Steps
 /// <summary>
 /// Creates an MSSQL connection string
 /// </summary>
-public sealed class CreateMsSQLConnectionString : CompoundStep<StringStream>
+public sealed class CreateMsSQLConnectionString : CompoundStep<Entity>
 {
     /// <inheritdoc />
-    protected override async Task<Result<StringStream, IError>> Run(
+    protected override async Task<Result<Entity, IError>> Run(
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {
         var server = await Server.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (server.IsFailure)
-            return server.ConvertFailure<StringStream>();
+            return server.ConvertFailure<Entity>();
 
         var db = await Database.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (db.IsFailure)
-            return db.ConvertFailure<StringStream>();
+            return db.ConvertFailure<Entity>();
 
         var cs = $"Server={server.Value};Database={db.Value};";
 
@@ -40,7 +41,7 @@ public sealed class CreateMsSQLConnectionString : CompoundStep<StringStream>
                 .Map(x => x.GetStringAsync());
 
             if (userResult.IsFailure)
-                return userResult.ConvertFailure<StringStream>();
+                return userResult.ConvertFailure<Entity>();
 
             user = userResult.Value;
         }
@@ -53,7 +54,7 @@ public sealed class CreateMsSQLConnectionString : CompoundStep<StringStream>
                 .Map(x => x.GetStringAsync());
 
             if (passResult.IsFailure)
-                return passResult.ConvertFailure<StringStream>();
+                return passResult.ConvertFailure<Entity>();
 
             pass = passResult.Value;
         }
@@ -81,7 +82,14 @@ public sealed class CreateMsSQLConnectionString : CompoundStep<StringStream>
             cs += "Integrated Security=true;";
         }
 
-        return new StringStream(cs);
+        var databaseConnection = new DatabaseConnection()
+        {
+            ConnectionString = cs, DatabaseType = DatabaseType.MsSql
+        };
+
+        var entity = EntityConversionHelpers.ConvertToEntity(databaseConnection);
+
+        return entity;
     }
 
     /// <summary>
@@ -115,7 +123,7 @@ public sealed class CreateMsSQLConnectionString : CompoundStep<StringStream>
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } =
-        new SimpleStepFactory<CreateMsSQLConnectionString, StringStream>();
+        new SimpleStepFactory<CreateMsSQLConnectionString, Entity>();
 }
 
 }

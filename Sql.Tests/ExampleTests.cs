@@ -162,7 +162,7 @@ public partial class ExampleTests
         {
             InitialSteps = new List<IStep<Unit>>
             {
-                new SetVariable<StringStream>()
+                new SetVariable<Entity>()
                 {
                     Variable = new VariableName("ConnectionString"),
                     Value = new CreateMySQLConnectionString()

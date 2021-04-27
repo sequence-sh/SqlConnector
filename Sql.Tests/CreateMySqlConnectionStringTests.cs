@@ -7,7 +7,7 @@ namespace Reductech.EDR.Connectors.Sql.Tests
 {
 
 public partial class
-    CreateMySqlConnectionStringTests : StepTestBase<CreateMySQLConnectionString, StringStream>
+    CreateMySqlConnectionStringTests : StepTestBase<CreateMySQLConnectionString, Entity>
 {
     /// <inheritdoc />
     protected override IEnumerable<StepCase> StepCases
@@ -24,7 +24,12 @@ public partial class
                     UId      = StaticHelpers.Constant("UserName"),
                     Port     = StaticHelpers.Constant(1234)
                 },
-                "Server=Server;Port=1234;Database=Database;Uid=UserName;Pwd=Password;"
+                new DatabaseConnection()
+                {
+                    ConnectionString =
+                        "Server=Server;Port=1234;Database=Database;Uid=UserName;Pwd=Password;",
+                    DatabaseType = DatabaseType.MsSql
+                }.ConvertToEntity()
             );
         }
     }
