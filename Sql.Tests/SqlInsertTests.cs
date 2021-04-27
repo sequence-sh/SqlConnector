@@ -9,6 +9,7 @@ using Reductech.EDR.Core.Steps;
 using Reductech.EDR.Core.TestHarness;
 using Reductech.EDR.Core.Util;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
+using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
@@ -109,30 +110,30 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                         {
                             new SqlCommand()
                             {
-                                ConnectionString = Constant(inMemoryConnectionString),
-                                DatabaseType     = Constant(DatabaseType.SQLite),
-                                Command = Constant(
-                                    $"DROP TABLE IF EXISTS {schema.Name}"
-                                )
+                                Connection =
+                                    GetConnectionMetadata(
+                                        DatabaseType.SQLite,
+                                        inMemoryConnectionString
+                                    ),
+                                Command = Constant($"DROP TABLE IF EXISTS {schema.Name}")
                             },
                             new SqlCreateTable()
                             {
-                                ConnectionString = Constant(inMemoryConnectionString),
-                                DatabaseType     = Constant(DatabaseType.SQLite),
-                                Schema           = Constant(schema.ConvertToEntity())
+                                //no need to set connection here, the previous connection is remembered
+                                Schema = Constant(schema.ConvertToEntity())
                             },
                             new SqlInsert
                             {
-                                ConnectionString = Constant(inMemoryConnectionString),
-                                Schema           = Constant(schema.ConvertToEntity()),
-                                DatabaseType     = Constant(DatabaseType.SQLite),
-                                Entities         = Array(CreateEntityArray(1))
+                                //no need to set connection here, the previous connection is remembered
+                                Schema   = Constant(schema.ConvertToEntity()),
+                                Entities = Array(CreateEntityArray(1))
                             }
                         },
                         FinalStep = new DoNothing()
                     },
                     Unit.Default
                 ) { IgnoreLoggedValues = true }
+                .WithDbConnectionInState(DatabaseType.SQLite, inMemoryConnectionString)
                 .WithContext(
                     DbConnectionFactory.DbConnectionName,
                     DbConnectionFactory.Instance
@@ -146,30 +147,30 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                         {
                             new SqlCommand()
                             {
-                                ConnectionString = Constant(inMemoryConnectionString),
-                                DatabaseType     = Constant(DatabaseType.SQLite),
+                                Connection =
+                                    GetConnectionMetadata(
+                                        DatabaseType.SQLite,
+                                        inMemoryConnectionString
+                                    ),
                                 Command = Constant(
                                     $"DROP TABLE IF EXISTS {schema.Name}"
                                 )
                             },
                             new SqlCreateTable()
                             {
-                                ConnectionString = Constant(inMemoryConnectionString),
-                                DatabaseType     = Constant(DatabaseType.SQLite),
-                                Schema           = Constant(schema.ConvertToEntity())
+                                Schema = Constant(schema.ConvertToEntity())
                             },
                             new SqlInsert
                             {
-                                ConnectionString = Constant(inMemoryConnectionString),
-                                Schema           = Constant(schema.ConvertToEntity()),
-                                DatabaseType     = Constant(DatabaseType.SQLite),
-                                Entities         = Array(CreateEntityArray(3000))
+                                Schema   = Constant(schema.ConvertToEntity()),
+                                Entities = Array(CreateEntityArray(3000))
                             }
                         },
                         FinalStep = new DoNothing()
                     },
                     Unit.Default
                 ) { IgnoreLoggedValues = true }
+                .WithDbConnectionInState(DatabaseType.SQLite, inMemoryConnectionString)
                 .WithContext(
                     DbConnectionFactory.DbConnectionName,
                     DbConnectionFactory.Instance

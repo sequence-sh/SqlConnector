@@ -8,8 +8,8 @@ using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
-using Reductech.EDR.Core.Internal.Logging;
 using Reductech.EDR.Core.Util;
+using Entity = Reductech.EDR.Core.Entity;
 
 namespace Reductech.EDR.Connectors.Sql.Steps
 {
@@ -30,27 +30,24 @@ public sealed class SqlCommand : CompoundStep<Unit>
         if (command.IsFailure)
             return command.ConvertFailure<Unit>();
 
-        var connectionString =
-            await ConnectionString.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
-
-        if (connectionString.IsFailure)
-            return connectionString.ConvertFailure<Unit>();
-
-        var databaseType = await DatabaseType.Run(stateMonad, cancellationToken);
-
-        if (databaseType.IsFailure)
-            return databaseType.ConvertFailure<Unit>();
-
         var factory = stateMonad.ExternalContext
             .TryGetContext<IDbConnectionFactory>(DbConnectionFactory.DbConnectionName);
 
         if (factory.IsFailure)
             return factory.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
 
-        using IDbConnection conn = factory.Value.GetDatabaseConnection(
-            databaseType.Value,
-            connectionString.Value
+        var databaseConnectionMetadata = await DatabaseConnectionMetadata.GetOrCreate(
+            Connection,
+            stateMonad,
+            this,
+            cancellationToken
         );
+
+        if (databaseConnectionMetadata.IsFailure)
+            return databaseConnectionMetadata.ConvertFailure<Unit>();
+
+        using IDbConnection conn =
+            factory.Value.GetDatabaseConnection(databaseConnectionMetadata.Value);
 
         conn.Open();
 
@@ -76,28 +73,19 @@ public sealed class SqlCommand : CompoundStep<Unit>
     }
 
     /// <summary>
-    /// The Connection String
-    /// </summary>
-    [StepProperty(order: 1)]
-    [Required]
-    public IStep<StringStream> ConnectionString { get; set; } = null!;
-
-    /// <summary>
     /// The Sql command to run
     /// </summary>
-    [StepProperty(order: 2)]
+    [StepProperty(order: 1)]
     [Required]
     [Alias("SQL")]
     public IStep<StringStream> Command { get; set; } = null!;
 
     /// <summary>
-    /// The Database Type to connect to
+    /// The Connection String
     /// </summary>
-    [StepProperty(3)]
-    [DefaultValueExplanation("SQL")]
-    [Alias("DB")]
-    public IStep<DatabaseType> DatabaseType { get; set; } =
-        new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
+    [StepProperty(order: 2)]
+    [DefaultValueExplanation("The Most Recent Connection")]
+    public IStep<Entity>? Connection { get; set; } = null;
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } = new SimpleStepFactory<SqlCommand, Unit>();

@@ -2,12 +2,13 @@
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.TestHarness;
+using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
 
 public partial class
-    CreateMySqlConnectionStringTests : StepTestBase<CreateMySQLConnectionString, StringStream>
+    CreateMySqlConnectionStringTests : StepTestBase<CreateMySQLConnectionString, Entity>
 {
     /// <inheritdoc />
     protected override IEnumerable<StepCase> StepCases
@@ -18,13 +19,18 @@ public partial class
                 "Create MySQL connection string",
                 new CreateMySQLConnectionString()
                 {
-                    Database = StaticHelpers.Constant("Database"),
-                    Pwd      = StaticHelpers.Constant("Password"),
-                    Server   = StaticHelpers.Constant("Server"),
-                    UId      = StaticHelpers.Constant("UserName"),
-                    Port     = StaticHelpers.Constant(1234)
+                    Database = Constant("Database"),
+                    Pwd      = Constant("Password"),
+                    Server   = Constant("Server"),
+                    UId      = Constant("UserName"),
+                    Port     = Constant(1234)
                 },
-                "Server=Server;Port=1234;Database=Database;Uid=UserName;Pwd=Password;"
+                new DatabaseConnectionMetadata()
+                {
+                    ConnectionString =
+                        "Server=Server;Port=1234;Database=Database;Uid=UserName;Pwd=Password;",
+                    DatabaseType = DatabaseType.MsSql
+                }.ConvertToEntity()
             );
         }
     }

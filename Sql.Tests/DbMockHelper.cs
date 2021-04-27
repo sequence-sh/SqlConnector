@@ -130,7 +130,14 @@ public static class DbMockHelper
         var connection = repository.Create<IDbConnection>();
         var command    = repository.Create<IDbCommand>();
 
-        factory.Setup(f => f.GetDatabaseConnection(databaseType, connectionString))
+        factory.Setup(
+                f => f.GetDatabaseConnection(
+                    new DatabaseConnectionMetadata()
+                    {
+                        ConnectionString = connectionString, DatabaseType = databaseType
+                    }
+                )
+            )
             .Returns(connection.Object);
 
         connection.Setup(f => f.CreateCommand()).Returns(command.Object);

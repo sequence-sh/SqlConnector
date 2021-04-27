@@ -2,12 +2,13 @@
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.TestHarness;
+using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
 
 public partial class
-    CreatePostgresConnectionStringTests : StepTestBase<CreatePostgresConnectionString, StringStream>
+    CreatePostgresConnectionStringTests : StepTestBase<CreatePostgresConnectionString, Entity>
 {
     /// <inheritdoc />
     protected override IEnumerable<StepCase> StepCases
@@ -18,13 +19,18 @@ public partial class
                 "Create Postgres connection string",
                 new CreatePostgresConnectionString
                 {
-                    Database = StaticHelpers.Constant("Database"),
-                    Password = StaticHelpers.Constant("Password"),
-                    Host     = StaticHelpers.Constant("Host"),
-                    Port     = StaticHelpers.Constant(123),
-                    UserId   = StaticHelpers.Constant("User")
+                    Database = Constant("Database"),
+                    Password = Constant("Password"),
+                    Host     = Constant("Host"),
+                    Port     = Constant(123),
+                    UserId   = Constant("User")
                 },
-                "User ID=User;Password=Password;Host=Host;Port=123;Database=Database;"
+                new DatabaseConnectionMetadata()
+                {
+                    ConnectionString =
+                        "User ID=User;Password=Password;Host=Host;Port=123;Database=Database;",
+                    DatabaseType = DatabaseType.Postgres
+                }.ConvertToEntity()
             );
         }
     }

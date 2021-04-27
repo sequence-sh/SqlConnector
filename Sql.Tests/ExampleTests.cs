@@ -156,13 +156,11 @@ public partial class ExampleTests
 
         const int numberOfEntities = 10000;
 
-        var dbType = DatabaseType.MariaDb;
-
         var step = new Sequence<Unit>()
         {
             InitialSteps = new List<IStep<Unit>>
             {
-                new SetVariable<StringStream>()
+                new SetVariable<Entity>()
                 {
                     Variable = new VariableName("ConnectionString"),
                     Value = new CreateMySQLConnectionString()
@@ -175,22 +173,19 @@ public partial class ExampleTests
                 },
                 new SqlCommand()
                 {
-                    ConnectionString = GetVariable<StringStream>("ConnectionString"),
-                    DatabaseType     = Constant(dbType),
-                    Command          = Constant($"Drop table if exists {schema.Name};")
+                    Connection = GetVariable<Entity>("ConnectionString"),
+                    Command    = Constant($"Drop table if exists {schema.Name};")
                 },
                 new SqlCreateTable()
                 {
-                    ConnectionString = GetVariable<StringStream>("ConnectionString"),
-                    DatabaseType     = Constant(dbType),
-                    Schema           = Constant(schema.ConvertToEntity())
+                    Connection = GetVariable<Entity>("ConnectionString"),
+                    Schema     = Constant(schema.ConvertToEntity())
                 },
                 new SqlInsert()
                 {
-                    ConnectionString = GetVariable<StringStream>("ConnectionString"),
-                    Schema           = Constant(schema.ConvertToEntity()),
-                    Entities         = Array(CreateEntityArray(numberOfEntities)),
-                    DatabaseType     = Constant(dbType)
+                    Connection = GetVariable<Entity>("ConnectionString"),
+                    Schema     = Constant(schema.ConvertToEntity()),
+                    Entities   = Array(CreateEntityArray(numberOfEntities)),
                 }
             },
             FinalStep = new DoNothing()

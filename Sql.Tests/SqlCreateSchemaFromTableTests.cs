@@ -6,6 +6,7 @@ using Reductech.EDR.Core.Entities;
 using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.TestHarness;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
+using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
@@ -44,20 +45,19 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                     "Simple SQLite case",
                     new SqlCreateSchemaFromTable()
                     {
-                        ConnectionString = Constant("MyConnectionString"),
-                        Table            = Constant("MyTable"),
-                        DatabaseType     = Constant(DatabaseType.SQLite),
+                        Connection = GetConnectionMetadata(DatabaseType.SQLite),
+                        Table      = Constant("MyTable"),
                     },
                     expectedSchema
                         .ConvertToEntity()
-                )
+                ).WithDbConnectionInState(DatabaseType.SQLite)
                 .WithContextMock(
                     DbConnectionFactory.DbConnectionName,
                     mr =>
                         DbMockHelper.SetupConnectionFactoryForScalarQuery(
                             mr,
                             DatabaseType.SQLite,
-                            "MyConnectionString",
+                            TestConnectionString,
                             "SELECT sql FROM SQLite_master WHERE name = 'MyTable';",
                             @"CREATE TABLE ""MyTable"" (
     ""Id"" INT NOT NULL PRIMARY KEY,
@@ -78,20 +78,19 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                     "Simple MsSql case",
                     new SqlCreateSchemaFromTable()
                     {
-                        ConnectionString = Constant("MyConnectionString"),
-                        Table            = Constant("MyTable"),
-                        DatabaseType     = Constant(DatabaseType.MsSql),
+                        Connection = GetConnectionMetadata(DatabaseType.MsSql),
+                        Table      = Constant("MyTable"),
                     },
                     expectedSchema
                         .ConvertToEntity()
-                )
+                ).WithDbConnectionInState(DatabaseType.MsSql)
                 .WithContextMock(
                     DbConnectionFactory.DbConnectionName,
                     mr =>
                         DbMockHelper.SetupConnectionFactoryForQuery(
                             mr,
                             DatabaseType.MsSql,
-                            "MyConnectionString",
+                            TestConnectionString,
                             "SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE  from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = 'MyTable'",
                             msSqlDataTable
                         )
@@ -109,20 +108,19 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                     "Simple Postgres Case",
                     new SqlCreateSchemaFromTable()
                     {
-                        ConnectionString = Constant("MyConnectionString"),
-                        Table            = Constant("MyTable"),
-                        DatabaseType     = Constant(DatabaseType.Postgres),
+                        Connection = GetConnectionMetadata(DatabaseType.Postgres),
+                        Table      = Constant("MyTable")
                     },
                     expectedSchema
                         .ConvertToEntity()
-                )
+                ).WithDbConnectionInState(DatabaseType.Postgres)
                 .WithContextMock(
                     DbConnectionFactory.DbConnectionName,
                     mr =>
                         DbMockHelper.SetupConnectionFactoryForQuery(
                             mr,
                             DatabaseType.Postgres,
-                            "MyConnectionString",
+                            TestConnectionString,
                             "SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE  from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = 'MyTable'",
                             postGresDataTable
                         )
@@ -136,25 +134,25 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
         get
         {
             yield return new ErrorCase(
-                "Invalid Parse",
-                new SqlCreateSchemaFromTable()
-                {
-                    ConnectionString = Constant("MyConnectionString"),
-                    Table            = Constant("MyTable"),
-                    DatabaseType     = Constant(DatabaseType.SQLite),
-                },
-                ErrorCode_Sql.CouldNotGetCreateTable.ToErrorBuilder("MyTable")
-            ).WithContextMock(
-                DbConnectionFactory.DbConnectionName,
-                mr =>
-                    DbMockHelper.SetupConnectionFactoryForScalarQuery(
-                        mr,
-                        DatabaseType.SQLite,
-                        "MyConnectionString",
-                        "SELECT sql FROM SQLite_master WHERE name = 'MyTable';",
-                        "This is not a create table statement"
-                    )
-            );
+                    "Invalid Parse",
+                    new SqlCreateSchemaFromTable()
+                    {
+                        Connection = GetConnectionMetadata(DatabaseType.SQLite),
+                        Table      = Constant("MyTable"),
+                    },
+                    ErrorCode_Sql.CouldNotGetCreateTable.ToErrorBuilder("MyTable")
+                ).WithDbConnectionInState(DatabaseType.SQLite)
+                .WithContextMock(
+                    DbConnectionFactory.DbConnectionName,
+                    mr =>
+                        DbMockHelper.SetupConnectionFactoryForScalarQuery(
+                            mr,
+                            DatabaseType.SQLite,
+                            TestConnectionString,
+                            "SELECT sql FROM SQLite_master WHERE name = 'MyTable';",
+                            "This is not a create table statement"
+                        )
+                );
 
             foreach (var errorCase in base.ErrorCases)
                 yield return errorCase;

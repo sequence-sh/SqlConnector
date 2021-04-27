@@ -6,6 +6,7 @@ using System.Data.SQLite;
 using CSharpFunctionalExtensions;
 using MySqlConnector;
 using Npgsql;
+using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Connectors;
 using Reductech.EDR.Core.Internal.Errors;
@@ -36,16 +37,22 @@ public class DbConnectionFactory : IDbConnectionFactory
     public static IDbConnectionFactory Instance { get; } = new DbConnectionFactory();
 
     /// <inheritdoc />
-    public IDbConnection GetDatabaseConnection(DatabaseType databaseType, string connectionString)
+    public IDbConnection GetDatabaseConnection(DatabaseConnectionMetadata databaseConnection)
     {
-        return databaseType switch
+        var connectionString = databaseConnection.ConnectionString;
+
+        return databaseConnection.DatabaseType switch
         {
-            DatabaseType.SQLite => new SQLiteConnection(connectionString),
-            DatabaseType.MsSql => new SqlConnection(connectionString),
+            DatabaseType.SQLite   => new SQLiteConnection(connectionString),
+            DatabaseType.MsSql    => new SqlConnection(connectionString),
             DatabaseType.Postgres => new NpgsqlConnection(connectionString),
-            DatabaseType.MySql => new MySqlConnection(connectionString),
-            DatabaseType.MariaDb => new MySqlConnection(connectionString),
-            _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
+            DatabaseType.MySql    => new MySqlConnection(connectionString),
+            DatabaseType.MariaDb  => new MySqlConnection(connectionString),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(databaseConnection.DatabaseType),
+                databaseConnection,
+                null
+            )
         };
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
@@ -29,12 +30,6 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {
-        var connectionString =
-            await ConnectionString.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
-
-        if (connectionString.IsFailure)
-            return connectionString.ConvertFailure<Entity>();
-
         var table = await Table.Run(stateMonad, cancellationToken)
             .Map(x => x.GetStringAsync())
             .Bind(x => Extensions.CheckSqlObjectName(x).MapError(e => e.WithLocation(this)));
@@ -42,10 +37,15 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         if (table.IsFailure)
             return table.ConvertFailure<Entity>();
 
-        var databaseType = await DatabaseType.Run(stateMonad, cancellationToken);
+        var databaseConnectionMetadata = await DatabaseConnectionMetadata.GetOrCreate(
+            Connection,
+            stateMonad,
+            this,
+            cancellationToken
+        );
 
-        if (databaseType.IsFailure)
-            return databaseType.ConvertFailure<Entity>();
+        if (databaseConnectionMetadata.IsFailure)
+            return databaseConnectionMetadata.ConvertFailure<Entity>();
 
         string? postgresSchema = null;
 
@@ -69,19 +69,20 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                 .MapError(x => x.WithLocation(this))
                 .ConvertFailure<Entity>();
 
-        using var conn = factory.Value.GetDatabaseConnection(
-            databaseType.Value,
-            connectionString.Value
-        );
+        using var conn = factory.Value.GetDatabaseConnection(databaseConnectionMetadata.Value);
 
         conn.Open();
 
-        var queryString = GetQuery(table.Value, postgresSchema, databaseType.Value);
+        var queryString = GetQuery(
+            table.Value,
+            postgresSchema,
+            databaseConnectionMetadata.Value.DatabaseType
+        );
 
         using var command = conn.CreateCommand();
         command.CommandText = queryString;
 
-        var r = Convert(command, table.Value, databaseType.Value)
+        var r = Convert(command, table.Value, databaseConnectionMetadata.Value.DatabaseType)
             .MapError(x => x.WithLocation(this));
 
         return r;
@@ -94,11 +95,11 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
     {
         return databaseType switch
         {
-            Sql.DatabaseType.SQLite => ConvertSQLite(command, tableName),
-            Sql.DatabaseType.MsSql => ConvertDefault(command, tableName, databaseType),
-            Sql.DatabaseType.Postgres => ConvertDefault(command, tableName, databaseType),
-            Sql.DatabaseType.MySql => ConvertDefault(command, tableName, databaseType),
-            Sql.DatabaseType.MariaDb => ConvertDefault(command, tableName, databaseType),
+            DatabaseType.SQLite => ConvertSQLite(command, tableName),
+            DatabaseType.MsSql => ConvertDefault(command, tableName, databaseType),
+            DatabaseType.Postgres => ConvertDefault(command, tableName, databaseType),
+            DatabaseType.MySql => ConvertDefault(command, tableName, databaseType),
+            DatabaseType.MariaDb => ConvertDefault(command, tableName, databaseType),
             _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
         };
 
@@ -204,7 +205,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
             }
 
             var parseResult =
-                Microsoft.SqlServer.Management.SqlParser.Parser.Parser.Parse(queryResult);
+                Parser.Parse(queryResult);
 
             var schemas = parseResult.Script
                 .SelfAndDescendants<SqlCodeObject>(x => x.Children)
@@ -221,34 +222,25 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
     }
 
     /// <summary>
-    /// The Connection String
-    /// </summary>
-    [StepProperty(order: 1)]
-    [Required]
-    public IStep<StringStream> ConnectionString { get; set; } = null!;
-
-    /// <summary>
     /// The table to create a schema from
     /// </summary>
-    [StepProperty(order: 2)]
+    [StepProperty(order: 1)]
     [Required]
     public IStep<StringStream> Table { get; set; } = null!;
 
     /// <summary>
-    /// The Database Type to connect to
-    /// </summary>
-    [StepProperty(3)]
-    [DefaultValueExplanation("Sql")]
-    [Alias("DB")]
-    public IStep<DatabaseType> DatabaseType { get; set; } =
-        new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
-
-    /// <summary>
     /// The schema this table belongs to, if postgres
     /// </summary>
-    [StepProperty(4)]
+    [StepProperty(2)]
     [DefaultValueExplanation("No schema")]
     public IStep<StringStream>? PostgresSchema { get; set; } = null;
+
+    /// <summary>
+    /// The Connection String
+    /// </summary>
+    [StepProperty(order: 3)]
+    [DefaultValueExplanation("The Most Recent Connection")]
+    public IStep<Entity>? Connection { get; set; } = null;
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } =
@@ -258,9 +250,9 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
     {
         return databaseType switch
         {
-            Sql.DatabaseType.SQLite => $"SELECT sql FROM SQLite_master WHERE name = '{tableName}';",
-            Sql.DatabaseType.MsSql => CreateQuery(tableName, schema),
-            Sql.DatabaseType.Postgres => CreateQuery(tableName, schema),
+            DatabaseType.SQLite => $"SELECT sql FROM SQLite_master WHERE name = '{tableName}';",
+            DatabaseType.MsSql => CreateQuery(tableName, schema),
+            DatabaseType.Postgres => CreateQuery(tableName, schema),
             _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
         };
 
@@ -297,7 +289,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                         ? Multiplicity.ExactlyOne
                         : Multiplicity.UpToOne;
 
-                var property = new SchemaProperty() { Type = r.Value, Multiplicity = multiplicity };
+                var property = new SchemaProperty { Type = r.Value, Multiplicity = multiplicity };
 
                 schemaProperties.Add(columnDefinition.Name.Value, property);
             }
@@ -321,16 +313,16 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
     {
         switch (databaseType)
         {
-            case Sql.DatabaseType.SQLite:
+            case DatabaseType.SQLite:
                 return ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(dataTypeString, column);
-            case Sql.DatabaseType.MsSql:
+            case DatabaseType.MsSql:
             {
                 if (Enum.TryParse(dataTypeString, true, out SqlDataType dt))
                     return ConvertSqlDataType(dt, column);
 
                 return ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(dataTypeString, column);
             }
-            case Sql.DatabaseType.Postgres:
+            case DatabaseType.Postgres:
             {
                 return ConvertPostgresDataType(dataTypeString, column);
             }

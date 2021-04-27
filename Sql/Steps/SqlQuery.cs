@@ -29,16 +29,15 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
         if (query.IsFailure)
             return query.ConvertFailure<Array<Entity>>();
 
-        var connectionString =
-            await ConnectionString.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
+        var databaseConnectionMetadata = await DatabaseConnectionMetadata.GetOrCreate(
+            Connection,
+            stateMonad,
+            this,
+            cancellationToken
+        );
 
-        if (connectionString.IsFailure)
-            return connectionString.ConvertFailure<Array<Entity>>();
-
-        var databaseType = await DatabaseType.Run(stateMonad, cancellationToken);
-
-        if (databaseType.IsFailure)
-            return databaseType.ConvertFailure<Array<Entity>>();
+        if (databaseConnectionMetadata.IsFailure)
+            return databaseConnectionMetadata.ConvertFailure<Array<Entity>>();
 
         var factory = stateMonad.ExternalContext
             .TryGetContext<IDbConnectionFactory>(DbConnectionFactory.DbConnectionName);
@@ -46,10 +45,7 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
         if (factory.IsFailure)
             return factory.MapError(x => x.WithLocation(this)).ConvertFailure<Array<Entity>>();
 
-        IDbConnection conn = factory.Value.GetDatabaseConnection(
-            databaseType.Value,
-            connectionString.Value
-        );
+        IDbConnection conn = factory.Value.GetDatabaseConnection(databaseConnectionMetadata.Value);
 
         conn.Open();
 
@@ -79,28 +75,19 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
     }
 
     /// <summary>
-    /// The Connection String
-    /// </summary>
-    [StepProperty(order: 1)]
-    [Required]
-    public IStep<StringStream> ConnectionString { get; set; } = null!;
-
-    /// <summary>
     /// The Sql query to run
     /// </summary>
-    [StepProperty(order: 2)]
+    [StepProperty(order: 1)]
     [Required]
     [Alias("Sql")]
     public IStep<StringStream> Query { get; set; } = null!;
 
     /// <summary>
-    /// The Database Type to connect to
+    /// The Connection String
     /// </summary>
-    [StepProperty(3)]
-    [DefaultValueExplanation("Sql")]
-    [Alias("DB")]
-    public IStep<DatabaseType> DatabaseType { get; set; } =
-        new EnumConstant<DatabaseType>(Sql.DatabaseType.MsSql);
+    [StepProperty(order: 2)]
+    [DefaultValueExplanation("The Most Recent Connection")]
+    public IStep<Entity>? Connection { get; set; } = null;
 
     /// <inheritdoc />
     public override IStepFactory StepFactory => new SimpleStepFactory<SqlQuery, Array<Entity>>();

@@ -9,7 +9,7 @@ namespace Reductech.EDR.Connectors.Sql.Tests
 {
 
 public partial class
-    CreateMsSQLConnectionStringTests : StepTestBase<CreateMsSQLConnectionString, StringStream>
+    CreateMsSQLConnectionStringTests : StepTestBase<CreateMsSQLConnectionString, Entity>
 {
     /// <inheritdoc />
     protected override IEnumerable<StepCase> StepCases
@@ -25,7 +25,14 @@ public partial class
                     Server   = Constant("Server"),
                     UserName = Constant("UserName"),
                 },
-                "Server=Server;Database=Database;User Id=UserName;Password=Password;"
+                EntityConversionHelpers.ConvertToEntity(
+                    new DatabaseConnectionMetadata()
+                    {
+                        ConnectionString =
+                            "Server=Server;Database=Database;User Id=UserName;Password=Password;",
+                        DatabaseType = DatabaseType.MsSql
+                    }
+                )
             );
 
             yield return new StepCase(
@@ -34,7 +41,14 @@ public partial class
                 {
                     Database = Constant("Database"), Server = Constant("Server"),
                 },
-                "Server=Server;Database=Database;Integrated Security=true;"
+                EntityConversionHelpers.ConvertToEntity(
+                    new DatabaseConnectionMetadata()
+                    {
+                        ConnectionString =
+                            "Server=Server;Database=Database;Integrated Security=true;",
+                        DatabaseType = DatabaseType.MsSql
+                    }
+                )
             );
         }
     }

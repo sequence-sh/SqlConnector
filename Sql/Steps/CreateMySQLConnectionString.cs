@@ -6,14 +6,15 @@ using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
+using Entity = Reductech.EDR.Core.Entity;
 
 namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
-public sealed class CreateMySQLConnectionString : CompoundStep<StringStream>
+public sealed class CreateMySQLConnectionString : CompoundStep<Entity>
 {
     /// <inheritdoc />
-    protected override async Task<Result<StringStream, IError>> Run(
+    protected override async Task<Result<Entity, IError>> Run(
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {
@@ -21,34 +22,40 @@ public sealed class CreateMySQLConnectionString : CompoundStep<StringStream>
             .Map(x => x.GetStringAsync());
 
         if (server.IsFailure)
-            return server.ConvertFailure<StringStream>();
+            return server.ConvertFailure<Entity>();
 
         var port = await Port.Run(stateMonad, cancellationToken);
 
         if (port.IsFailure)
-            return port.ConvertFailure<StringStream>();
+            return port.ConvertFailure<Entity>();
 
         var database =
             await Database.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (database.IsFailure)
-            return database.ConvertFailure<StringStream>();
+            return database.ConvertFailure<Entity>();
 
         var username = await UId.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (username.IsFailure)
-            return username.ConvertFailure<StringStream>();
+            return username.ConvertFailure<Entity>();
 
         var password = await Pwd.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
 
         if (password.IsFailure)
-            return password.ConvertFailure<StringStream>();
+            return password.ConvertFailure<Entity>();
 
-        var s = new StringStream(
-            $"Server={server.Value};Port={port.Value};Database={database.Value};Uid={username.Value};Pwd={password.Value};"
-        );
+        var connectionString =
+            $"Server={server.Value};Port={port.Value};Database={database.Value};Uid={username.Value};Pwd={password.Value};";
 
-        return s;
+        var databaseConnection = new DatabaseConnectionMetadata
+        {
+            ConnectionString = connectionString, DatabaseType = DatabaseType.MsSql
+        };
+
+        var entity = EntityConversionHelpers.ConvertToEntity(databaseConnection);
+
+        return entity;
     }
 
     /// <summary>
@@ -92,7 +99,7 @@ public sealed class CreateMySQLConnectionString : CompoundStep<StringStream>
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } =
-        new SimpleStepFactory<CreateMySQLConnectionString, StringStream>();
+        new SimpleStepFactory<CreateMySQLConnectionString, Entity>();
 }
 
 }
