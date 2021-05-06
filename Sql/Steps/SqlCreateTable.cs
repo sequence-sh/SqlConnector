@@ -57,6 +57,14 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         if (factory.IsFailure)
             return factory.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
 
+        var commandTextResult = GetCommandText(
+            schema.Value,
+            databaseConnectionMetadata.Value.DatabaseType
+        );
+
+        if (commandTextResult.IsFailure)
+            return commandTextResult.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
+
         using IDbConnection conn =
             factory.Value.GetDatabaseConnection(databaseConnectionMetadata.Value);
 
@@ -64,14 +72,7 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
 
         using var dbCommand = conn.CreateCommand();
 
-        var setCommandResult = SetCommand(
-            schema.Value,
-            dbCommand,
-            databaseConnectionMetadata.Value.DatabaseType
-        );
-
-        if (setCommandResult.IsFailure)
-            return setCommandResult.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
+        dbCommand.CommandText = commandTextResult.Value;
 
         int rowsAffected;
 
@@ -109,22 +110,8 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
     public override IStepFactory StepFactory { get; } =
         new SimpleStepFactory<SqlCreateTable, Unit>();
 
-    private static bool ShouldQuoteNames(DatabaseType databaseType)
-    {
-        return databaseType switch
-        {
-            DatabaseType.SQLite => true,
-            DatabaseType.MsSql => true,
-            DatabaseType.Postgres => true,
-            DatabaseType.MySql => false,
-            DatabaseType.MariaDb => false,
-            _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
-        };
-    }
-
-    private static Result<Unit, IErrorBuilder> SetCommand(
+    internal static Result<string, IErrorBuilder> GetCommandText(
         Schema schema,
-        IDbCommand command,
         DatabaseType databaseType)
     {
         var sb     = new StringBuilder();
@@ -179,12 +166,10 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
 
         sb.AppendLine(")");
 
-        command.CommandText = sb.ToString();
-
         if (errors.Any())
-            return Result.Failure<Unit, IErrorBuilder>(ErrorBuilderList.Combine(errors));
+            return Result.Failure<string, IErrorBuilder>(ErrorBuilderList.Combine(errors));
 
-        return Unit.Default;
+        return sb.ToString();
 
         static Result<string, IErrorBuilder> TryGetMultiplicityString(Multiplicity multiplicity)
         {
@@ -203,6 +188,19 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
                     multiplicity,
                     null
                 )
+            };
+        }
+
+        static bool ShouldQuoteNames(DatabaseType databaseType)
+        {
+            return databaseType switch
+            {
+                DatabaseType.SQLite => true,
+                DatabaseType.MsSql => true,
+                DatabaseType.Postgres => true,
+                DatabaseType.MySql => false,
+                DatabaseType.MariaDb => false,
+                _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
             };
         }
     }

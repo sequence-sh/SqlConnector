@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using CSharpFunctionalExtensions;
+using FluentAssertions;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Entities;
@@ -7,6 +11,7 @@ using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal.Errors;
 using Reductech.EDR.Core.TestHarness;
 using Reductech.EDR.Core.Util;
+using Xunit.Abstractions;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
 
@@ -112,6 +117,231 @@ public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
             foreach (var errorCase in base.ErrorCases)
                 yield return errorCase;
         }
+    }
+
+    [AutoTheory.GenerateTheory("TestGetCommand")]
+    public IEnumerable<GetCommandTest> GetCommandTests
+    {
+        get
+        {
+            static Schema Create(
+                string tableName,
+                Action<Schema> action,
+                params (string name, SchemaProperty schemaProperty)[] schemaProperties)
+            {
+                Schema s = new()
+                {
+                    Name = tableName,
+                    Properties = schemaProperties.ToDictionary(
+                        x => x.name,
+                        x => x.schemaProperty
+                    ),
+                    ExtraProperties = ExtraPropertyBehavior.Fail
+                };
+
+                action(s);
+
+                return s;
+            }
+
+            yield return new GetCommandTest(
+                Create(
+                    "SQLiteTable",
+                    x => { },
+                    ("MyColumn",
+                     new SchemaProperty()
+                     {
+                         Type = SCLType.String, Multiplicity = Multiplicity.ExactlyOne
+                     })
+                ),
+                DatabaseType.SQLite,
+                @"CREATE TABLE ""SQLiteTable"" ( ""MyColumn"" NTEXT NOT NULL )"
+            );
+
+            yield return new GetCommandTest(
+                Create(
+                    "MsSQLTable",
+                    x => { },
+                    ("MyColumn",
+                     new SchemaProperty()
+                     {
+                         Type = SCLType.String, Multiplicity = Multiplicity.ExactlyOne
+                     })
+                ),
+                DatabaseType.MsSql,
+                @"CREATE TABLE ""MsSQLTable"" (
+""MyColumn"" NTEXT NOT NULL
+)"
+            );
+
+            yield return new GetCommandTest(
+                Create(
+                    "PostgresTable",
+                    x => { },
+                    ("MyColumn",
+                     new SchemaProperty()
+                     {
+                         Type = SCLType.String, Multiplicity = Multiplicity.ExactlyOne
+                     })
+                ),
+                DatabaseType.Postgres,
+                @"CREATE TABLE ""PostgresTable"" ( ""MyColumn"" text NOT NULL )"
+            );
+
+            yield return new GetCommandTest(
+                Create(
+                    "MySQLTable",
+                    x => { },
+                    ("MyColumn",
+                     new SchemaProperty()
+                     {
+                         Type = SCLType.String, Multiplicity = Multiplicity.ExactlyOne
+                     })
+                ),
+                DatabaseType.MySql,
+                @"CREATE TABLE MySQLTable (
+MyColumn TEXT NOT NULL
+)"
+            );
+
+            yield return new GetCommandTest(
+                Create(
+                    "MariaDbTable",
+                    x => { },
+                    ("MyColumn",
+                     new SchemaProperty()
+                     {
+                         Type = SCLType.String, Multiplicity = Multiplicity.ExactlyOne
+                     })
+                ),
+                DatabaseType.MariaDb,
+                "CREATE TABLE MariaDbTable ( MyColumn TEXT NOT NULL )"
+            );
+
+            //ERROR CASES
+
+            yield return new GetCommandTest(
+                Create(
+                    "AllowExtraProperties",
+                    s => s.ExtraProperties = ExtraPropertyBehavior.Allow
+                ),
+                DatabaseType.MySql,
+                ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder(
+                    $"Schema has {nameof(Schema.ExtraProperties)} set to 'Allow'"
+                )
+            );
+
+            yield return new GetCommandTest(
+                Create(
+                    "Bad^Table^Name",
+                    s => { }
+                ),
+                DatabaseType.MySql,
+                ErrorCode_Sql.InvalidName.ToErrorBuilder("Bad^Table^Name")
+            );
+
+            yield return new GetCommandTest(
+                Create(
+                    "BadColumnNameTable",
+                    s => { },
+                    ("Bad^Column^Name",
+                     new SchemaProperty()
+                     {
+                         Type = SCLType.String, Multiplicity = Multiplicity.ExactlyOne
+                     })
+                ),
+                DatabaseType.MySql,
+                ErrorCode_Sql.InvalidName.ToErrorBuilder("Bad^Column^Name")
+            );
+
+            yield return new GetCommandTest(
+                Create(
+                    "BadDataTypeTable",
+                    s => { },
+                    ("BadDataTypeColumn",
+                     new SchemaProperty()
+                     {
+                         Type = SCLType.Entity, Multiplicity = Multiplicity.ExactlyOne
+                     })
+                ),
+                DatabaseType.MySql,
+                ErrorCode_Sql.CouldNotCreateTable
+                    .ToErrorBuilder("Sql does not support nested entities")
+            );
+
+            yield return new GetCommandTest(
+                Create(
+                    "MultiplicityAnyTable",
+                    s => { },
+                    ("MultiplicityAnyColumn",
+                     new SchemaProperty()
+                     {
+                         Type = SCLType.String, Multiplicity = Multiplicity.Any
+                     })
+                ),
+                DatabaseType.MySql,
+                ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder(
+                    $"Sql does not support Multiplicity '{Multiplicity.Any}'"
+                )
+            );
+
+            yield return new GetCommandTest(
+                Create(
+                    "MultiplicityAtLeastOneTable",
+                    s => { },
+                    ("MultiplicityAtLeastOneColumn",
+                     new SchemaProperty()
+                     {
+                         Type = SCLType.String, Multiplicity = Multiplicity.AtLeastOne
+                     })
+                ),
+                DatabaseType.MySql,
+                ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder(
+                    $"Sql does not support Multiplicity '{Multiplicity.AtLeastOne}'"
+                )
+            );
+        }
+    }
+
+    public record GetCommandTest(
+        Schema Schema,
+        DatabaseType DatabaseType,
+        Result<string, IErrorBuilder> ExpectedResult) : AutoTheory.ITestInstance
+    {
+        /// <inheritdoc />
+        public void Run(ITestOutputHelper testOutputHelper)
+        {
+            var result = SqlCreateTable.GetCommandText(Schema, DatabaseType);
+
+            if (ExpectedResult.IsSuccess)
+            {
+                result.ShouldBeSuccessful();
+                TrimSpaces(result.Value).Should().Be(TrimSpaces(ExpectedResult.Value));
+
+                static string TrimSpaces(string s)
+                {
+                    return Regex.Replace(s, @"\s+", " ").Trim();
+                }
+            }
+            else
+            {
+                result.ShouldBeFailure();
+
+                getMessages(result.Error)
+                    .Should()
+                    .BeEquivalentTo(getMessages(ExpectedResult.Error));
+
+                result.Error.Should().Be(ExpectedResult.Error);
+
+                IReadOnlyCollection<string> getMessages(IErrorBuilder errorBuilder)
+                {
+                    return errorBuilder.GetErrorBuilders().Select(x => x.AsString).ToList();
+                }
+            }
+        }
+
+        /// <inheritdoc />
+        public string Name => $"{Schema.Name} {DatabaseType}";
     }
 }
 
