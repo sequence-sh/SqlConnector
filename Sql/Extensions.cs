@@ -105,6 +105,11 @@ public static class Extensions
 
         command.Parameters.Add(parameter);
     }
+
+    public static string MaybeQuote(string name, bool quote)
+    {
+        return quote ? $"\"{name}\"" : name;
+    }
 }
 
 }

@@ -96,13 +96,13 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                         )
                 );
 
-            DataTable postGresDataTable = new();
-            postGresDataTable.Clear();
-            postGresDataTable.Columns.Add("column_name");
-            postGresDataTable.Columns.Add("is_nullable");
-            postGresDataTable.Columns.Add("data_type");
-            postGresDataTable.Rows.Add("Id",   "NO",  "integer");
-            postGresDataTable.Rows.Add("Name", "YES", "text");
+            DataTable postgresDataTable = new();
+            postgresDataTable.Clear();
+            postgresDataTable.Columns.Add("column_name");
+            postgresDataTable.Columns.Add("is_nullable");
+            postgresDataTable.Columns.Add("data_type");
+            postgresDataTable.Rows.Add("Id",   "NO",  "integer");
+            postgresDataTable.Rows.Add("Name", "YES", "text");
 
             yield return new StepCase(
                     "Simple Postgres Case",
@@ -122,7 +122,7 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                             DatabaseType.Postgres,
                             TestConnectionString,
                             "SELECT COLUMN_NAME, IS_NULLABLE, DATA_TYPE  from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME = 'MyTable'",
-                            postGresDataTable
+                            postgresDataTable
                         )
                 );
         }
@@ -153,6 +153,27 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                             "This is not a create table statement"
                         )
                 );
+
+            yield return new ErrorCase(
+                "Invalid table name",
+                new SqlCreateSchemaFromTable()
+                {
+                    Table      = Constant("Bad^Table^Name"),
+                    Connection = GetConnectionMetadata(DatabaseType.SQLite),
+                },
+                ErrorCode_Sql.InvalidName.ToErrorBuilder("Bad^Table^Name")
+            );
+
+            yield return new ErrorCase(
+                "Invalid postgres schema name",
+                new SqlCreateSchemaFromTable()
+                {
+                    Table          = Constant("MyTable"),
+                    PostgresSchema = Constant("Bad^Postgres^Schema"),
+                    Connection     = GetConnectionMetadata(DatabaseType.SQLite),
+                },
+                ErrorCode_Sql.InvalidName.ToErrorBuilder("Bad^Postgres^Schema")
+            ) { IgnoreFinalState = true };
 
             foreach (var errorCase in base.ErrorCases)
                 yield return errorCase;
