@@ -40,8 +40,10 @@ public partial class ExampleTests
 
         var logger = TestOutputHelper.BuildLogger(LogLevel.Information);
 
-        var sfs = StepFactoryStore.CreateFromAssemblies(
-            typeof(CreateMsSQLConnectionString).Assembly
+        var assembly = typeof(CreateMsSQLConnectionString).Assembly!;
+
+        var sfs = StepFactoryStore.Create(
+            new ConnectorData(ConnectorSettings.DefaultForAssembly(assembly), assembly)
         );
 
         var context = new ExternalContext(
@@ -204,7 +206,7 @@ public partial class ExampleTests
         var monad = new StateMonad(
             TestOutputHelper.BuildLogger(),
             SCLSettings.EmptySettings,
-            StepFactoryStore.CreateFromAssemblies(),
+            StepFactoryStore.Create(),
             context,
             new Dictionary<string, object>()
         );

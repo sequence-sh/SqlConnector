@@ -51,7 +51,7 @@ public static class Extensions
             if (char.IsLetterOrDigit(c))
                 return true;
 
-            if (c == '@' || c == '_' || c == '$')
+            if (c is '@' or '_' or '$')
                 return true;
 
             return false;
