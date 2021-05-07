@@ -87,7 +87,7 @@ public sealed class CreateMsSQLConnectionString : CompoundStep<Entity>
             ConnectionString = cs, DatabaseType = DatabaseType.MsSql
         };
 
-        var entity = EntityConversionHelpers.ConvertToEntity(databaseConnection);
+        var entity = databaseConnection.ConvertToEntity();
 
         return entity;
     }

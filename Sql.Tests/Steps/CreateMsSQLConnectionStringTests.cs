@@ -5,7 +5,7 @@ using Reductech.EDR.Core.Internal.Errors;
 using Reductech.EDR.Core.TestHarness;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests
+namespace Reductech.EDR.Connectors.Sql.Tests.Steps
 {
 
 public partial class
@@ -25,14 +25,12 @@ public partial class
                     Server   = Constant("Server"),
                     UserName = Constant("UserName"),
                 },
-                EntityConversionHelpers.ConvertToEntity(
-                    new DatabaseConnectionMetadata()
-                    {
-                        ConnectionString =
-                            "Server=Server;Database=Database;User Id=UserName;Password=Password;",
-                        DatabaseType = DatabaseType.MsSql
-                    }
-                )
+                new DatabaseConnectionMetadata()
+                {
+                    ConnectionString =
+                        "Server=Server;Database=Database;User Id=UserName;Password=Password;",
+                    DatabaseType = DatabaseType.MsSql
+                }.ConvertToEntity()
             );
 
             yield return new StepCase(
@@ -41,14 +39,12 @@ public partial class
                 {
                     Database = Constant("Database"), Server = Constant("Server"),
                 },
-                EntityConversionHelpers.ConvertToEntity(
-                    new DatabaseConnectionMetadata()
-                    {
-                        ConnectionString =
-                            "Server=Server;Database=Database;Integrated Security=true;",
-                        DatabaseType = DatabaseType.MsSql
-                    }
-                )
+                new DatabaseConnectionMetadata()
+                {
+                    ConnectionString =
+                        "Server=Server;Database=Database;Integrated Security=true;",
+                    DatabaseType = DatabaseType.MsSql
+                }.ConvertToEntity()
             );
         }
     }

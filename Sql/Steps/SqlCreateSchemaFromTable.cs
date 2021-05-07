@@ -15,7 +15,6 @@ using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
 using Entity = Reductech.EDR.Core.Entity;
-using SqlDataType = Microsoft.SqlServer.Management.SqlParser.Metadata.SqlDataType;
 
 namespace Reductech.EDR.Connectors.Sql.Steps
 {
@@ -96,11 +95,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         return databaseType switch
         {
             DatabaseType.SQLite => ConvertSQLite(command, tableName),
-            DatabaseType.MsSql => ConvertDefault(command, tableName, databaseType),
-            DatabaseType.Postgres => ConvertDefault(command, tableName, databaseType),
-            DatabaseType.MySql => ConvertDefault(command, tableName, databaseType),
-            DatabaseType.MariaDb => ConvertDefault(command, tableName, databaseType),
-            _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
+            _                   => ConvertDefault(command, tableName, databaseType)
         };
 
         static Result<Entity, IErrorBuilder> ConvertDefault(
@@ -158,7 +153,11 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                             }
                             case "DATA_TYPE":
                             {
-                                var r = ConvertDataType(value, propertyName, databaseType);
+                                var r = TypeConversion.TryConvertDataType(
+                                    value,
+                                    propertyName,
+                                    databaseType
+                                );
 
                                 if (r.IsFailure)
                                     return r.ConvertFailure<Entity>();
@@ -251,9 +250,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         return databaseType switch
         {
             DatabaseType.SQLite => $"SELECT sql FROM SQLite_master WHERE name = '{tableName}';",
-            DatabaseType.MsSql => CreateQuery(tableName, schema),
-            DatabaseType.Postgres => CreateQuery(tableName, schema),
-            _ => throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null)
+            _                   => CreateQuery(tableName, schema)
         };
 
         static string CreateQuery(string tableName, string? schema)
@@ -278,7 +275,10 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         {
             var gts = columnDefinition.DataType.DataType.GetTypeSpec();
 
-            var r = ConvertSqlDataType(gts.SqlDataType, columnDefinition.Name.Value);
+            var r = TypeConversion.TryConvertSqlDataType(
+                gts.SqlDataType,
+                columnDefinition.Name.Value
+            );
 
             if (r.IsFailure)
                 errors.Add(r.Error);
@@ -303,138 +303,6 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
             ExtraProperties = ExtraPropertyBehavior.Fail,
             Name            = statement.Name.ObjectName.Value,
             Properties      = schemaProperties,
-        };
-    }
-
-    private static Result<SCLType, IErrorBuilder> ConvertDataType(
-        string dataTypeString,
-        string column,
-        DatabaseType databaseType)
-    {
-        switch (databaseType)
-        {
-            case DatabaseType.SQLite:
-                return ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(dataTypeString, column);
-            case DatabaseType.MsSql:
-            {
-                if (Enum.TryParse(dataTypeString, true, out SqlDataType dt))
-                    return ConvertSqlDataType(dt, column);
-
-                return ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(dataTypeString, column);
-            }
-            case DatabaseType.Postgres:
-            {
-                return ConvertPostgresDataType(dataTypeString, column);
-            }
-            default:
-                throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null);
-        }
-    }
-
-    private static Result<SCLType, IErrorBuilder> ConvertPostgresDataType(
-        string dataType,
-        string column)
-    {
-        return dataType.ToLowerInvariant() switch //This list is not exhaustive
-        {
-            "bigint" => SCLType.Integer,
-            "bit" => SCLType.Bool,
-            "bit varying" => SCLType.Bool,
-            "boolean" => SCLType.Bool,
-            "char" => SCLType.String,
-            "character varying" => SCLType.String,
-            "character" => SCLType.String,
-            "varchar" => SCLType.String,
-            "date" => SCLType.Date,
-            "double precision" => SCLType.Double,
-            "integer" => SCLType.Integer,
-            "numeric" => SCLType.Double,
-            "decimal" => SCLType.Double,
-            "real" => SCLType.Double,
-            "smallint" => SCLType.Integer,
-            "text" => SCLType.String,
-            "time" => SCLType.Date,
-            "timestamp" => SCLType.Date,
-            _ => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(dataType, column)
-        };
-    }
-
-    private static Result<SCLType, IErrorBuilder> ConvertSqlDataType(
-        SqlDataType dataType,
-        string column)
-    {
-        return dataType switch
-        {
-            SqlDataType.None => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                dataType,
-                column
-            ),
-            SqlDataType.BigInt => SCLType.Integer,
-            SqlDataType.Binary => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                dataType,
-                column
-            ),
-            SqlDataType.Bit            => SCLType.Bool,
-            SqlDataType.Char           => SCLType.String,
-            SqlDataType.Date           => SCLType.Date,
-            SqlDataType.DateTime       => SCLType.Date,
-            SqlDataType.DateTime2      => SCLType.Date,
-            SqlDataType.DateTimeOffset => SCLType.Date,
-            SqlDataType.Decimal        => SCLType.Double,
-            SqlDataType.Float          => SCLType.Double,
-            SqlDataType.Geography => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                dataType,
-                column
-            ),
-            SqlDataType.Geometry => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                dataType,
-                column
-            ),
-            SqlDataType.HierarchyId => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                dataType,
-                column
-            ),
-            SqlDataType.Image => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                dataType,
-                column
-            ),
-            SqlDataType.Int           => SCLType.Integer,
-            SqlDataType.Money         => SCLType.Double,
-            SqlDataType.NChar         => SCLType.String,
-            SqlDataType.NText         => SCLType.String,
-            SqlDataType.Numeric       => SCLType.Double,
-            SqlDataType.NVarChar      => SCLType.String,
-            SqlDataType.NVarCharMax   => SCLType.String,
-            SqlDataType.Real          => SCLType.Double,
-            SqlDataType.SmallDateTime => SCLType.Date,
-            SqlDataType.SmallInt      => SCLType.Integer,
-            SqlDataType.SmallMoney    => SCLType.Double,
-            SqlDataType.SysName       => SCLType.String,
-            SqlDataType.Text          => SCLType.String,
-            SqlDataType.Time          => SCLType.Date,
-            SqlDataType.Timestamp     => SCLType.Date,
-            SqlDataType.TinyInt       => SCLType.Integer,
-            SqlDataType.UniqueIdentifier => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                dataType,
-                column
-            ),
-            SqlDataType.VarBinary => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                dataType,
-                column
-            ),
-            SqlDataType.VarBinaryMax => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                dataType,
-                column
-            ),
-            SqlDataType.VarChar    => SCLType.String,
-            SqlDataType.VarCharMax => SCLType.String,
-            SqlDataType.Variant    => SCLType.String,
-            SqlDataType.Xml        => SCLType.String,
-            SqlDataType.XmlNode => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                dataType,
-                column
-            ),
-            _ => throw new ArgumentOutOfRangeException(nameof(dataType), dataType, null)
         };
     }
 }

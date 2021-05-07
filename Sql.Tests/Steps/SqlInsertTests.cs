@@ -11,7 +11,7 @@ using Reductech.EDR.Core.Util;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests
+namespace Reductech.EDR.Connectors.Sql.Tests.Steps
 {
 
 public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
@@ -152,14 +152,9 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                                         DatabaseType.SQLite,
                                         inMemoryConnectionString
                                     ),
-                                Command = Constant(
-                                    $"DROP TABLE IF EXISTS {schema.Name}"
-                                )
+                                Command = Constant($"DROP TABLE IF EXISTS {schema.Name}")
                             },
-                            new SqlCreateTable()
-                            {
-                                Schema = Constant(schema.ConvertToEntity())
-                            },
+                            new SqlCreateTable() { Schema = Constant(schema.ConvertToEntity()) },
                             new SqlInsert
                             {
                                 Schema   = Constant(schema.ConvertToEntity()),

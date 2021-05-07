@@ -7,7 +7,7 @@ using Reductech.EDR.Core.Util;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests
+namespace Reductech.EDR.Connectors.Sql.Tests.Steps
 {
 
 public partial class SqlCommandTests : StepTestBase<SqlCommand, Unit>

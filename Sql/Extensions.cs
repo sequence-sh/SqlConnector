@@ -51,7 +51,7 @@ public static class Extensions
             if (char.IsLetterOrDigit(c))
                 return true;
 
-            if (c == '@' || c == '_' || c == '$')
+            if (c is '@' or '_' or '$')
                 return true;
 
             return false;
@@ -104,6 +104,11 @@ public static class Extensions
         parameter.ParameterName = "@" + key;
 
         command.Parameters.Add(parameter);
+    }
+
+    public static string MaybeQuote(string name, bool quote)
+    {
+        return quote ? $"\"{name}\"" : name;
     }
 }
 

@@ -4,11 +4,11 @@ using Reductech.EDR.Core;
 using Reductech.EDR.Core.TestHarness;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests
+namespace Reductech.EDR.Connectors.Sql.Tests.Steps
 {
 
 public partial class
-    CreatePostgresConnectionStringTests : StepTestBase<CreatePostgresConnectionString, Entity>
+    CreateMySqlConnectionStringTests : StepTestBase<CreateMySQLConnectionString, Entity>
 {
     /// <inheritdoc />
     protected override IEnumerable<StepCase> StepCases
@@ -16,20 +16,20 @@ public partial class
         get
         {
             yield return new StepCase(
-                "Create Postgres connection string",
-                new CreatePostgresConnectionString
+                "Create MySQL connection string",
+                new CreateMySQLConnectionString()
                 {
                     Database = Constant("Database"),
-                    Password = Constant("Password"),
-                    Host     = Constant("Host"),
-                    Port     = Constant(123),
-                    UserId   = Constant("User")
+                    Pwd      = Constant("Password"),
+                    Server   = Constant("Server"),
+                    UId      = Constant("UserName"),
+                    Port     = Constant(1234)
                 },
                 new DatabaseConnectionMetadata()
                 {
                     ConnectionString =
-                        "User ID=User;Password=Password;Host=Host;Port=123;Database=Database;",
-                    DatabaseType = DatabaseType.Postgres
+                        "Server=Server;Port=1234;Database=Database;Uid=UserName;Pwd=Password;",
+                    DatabaseType = DatabaseType.MsSql
                 }.ConvertToEntity()
             );
         }
