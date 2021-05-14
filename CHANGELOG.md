@@ -9,13 +9,11 @@
 ### Connector Updates
 
 - Steps in the SQL connector now reuse the most recent connection by default.
-- The `SQL` connector can now be used as a plugin
 
 ## Issues Closed in this Release
 
 ### New Features
 
-- Improve coverage by creating more unit tests #13
 - Change SQL connection management to make SCL more concise and easier for technicians #12
 - Allow this package to be used as a plugin #11
 
@@ -23,6 +21,7 @@
 
 - Enable publish to connector registry #15
 - Update Core dependecies #14
+- Improve coverage by creating more unit tests #13
 
 # v0.8.0 (2021-04-08)
 
