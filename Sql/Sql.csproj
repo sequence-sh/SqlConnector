@@ -32,7 +32,7 @@
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="MySqlConnector" Version="1.2.1" />
     <PackageReference Include="Npgsql" Version="5.0.3" />
-    <PackageReference Include="Reductech.EDR.Core" Version="0.9.0-a.master.2105121639">
+    <PackageReference Include="Reductech.EDR.Core" Version="0.9.0">
           <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
@@ -67,13 +67,9 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
-  <Target Name="AddConnectorDependencies"
-          BeforeTargets="GenerateNuspec"
-          Condition="$(PackConnector) != ''">
+  <Target Name="AddConnectorDependencies" BeforeTargets="GenerateNuspec" Condition="$(PackConnector) != ''">
     <ItemGroup>
-      <_PackageFiles
-        Include="@(RuntimeCopyLocalItems)"
-        PackagePath="$(BuildOutputTargetFolder)/$(TargetFramework)/%(Filename)%(Extension)" />
+      <_PackageFiles Include="@(RuntimeCopyLocalItems)" PackagePath="$(BuildOutputTargetFolder)/$(TargetFramework)/%(Filename)%(Extension)" />
     </ItemGroup>
   </Target>
 
