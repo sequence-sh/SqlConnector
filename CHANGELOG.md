@@ -1,3 +1,28 @@
+# v0.9.0 (2021-05-14)
+
+## Summary of Changes
+
+### Core SDK
+
+- Connector can now be used as a plugin for EDR
+
+### Connector Updates
+
+- Steps in the SQL connector now reuse the most recent connection by default.
+
+## Issues Closed in this Release
+
+### New Features
+
+- Change SQL connection management to make SCL more concise and easier for technicians #12
+- Allow this package to be used as a plugin #11
+
+### Maintenance
+
+- Enable publish to connector registry #15
+- Update Core dependecies #14
+- Improve coverage by creating more unit tests #13
+
 # v0.8.0 (2021-04-08)
 
 - Update of Core dependencies only
