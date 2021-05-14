@@ -68,8 +68,8 @@ public partial class ExampleTests
         r.ShouldBeSuccessful();
     }
 
-    [Fact(Skip = "skip")]
-    //[Fact]
+    //[Fact(Skip = "skip")]
+    [Fact]
     [Trait("Category", "Integration")]
     public async Task RunObjectSequence()
     {
@@ -156,7 +156,7 @@ public partial class ExampleTests
             return entities.ToArray();
         }
 
-        const int numberOfEntities = 10000;
+        const int numberOfEntities = 3;
 
         var step = new Sequence<Unit>()
         {
@@ -165,12 +165,20 @@ public partial class ExampleTests
                 new SetVariable<Entity>()
                 {
                     Variable = new VariableName("ConnectionString"),
+                    //Value = new CreatePostgresConnectionString()
+                    //{
+                    //    Database = Constant("postgres"),
+                    //    Host     = Constant("localhost"),
+                    //    Password = Constant("postgres"),
+                    //    Port     = Constant(5432),
+                    //    UserId   = Constant("postgres")
+                    //}
                     Value = new CreateMySQLConnectionString()
                     {
                         UId      = Constant("root"),
-                        Database = Constant("mydatabase"),
+                        Database = Constant("Test"),
                         Server   = Constant("localhost"),
-                        Pwd      = Constant("maria"),
+                        Pwd      = Constant("Steeltoe456"),
                     }
                 },
                 new SqlCommand()
@@ -178,16 +186,31 @@ public partial class ExampleTests
                     Connection = GetVariable<Entity>("ConnectionString"),
                     Command    = Constant($"Drop table if exists {schema.Name};")
                 },
-                new SqlCreateTable()
-                {
-                    Connection = GetVariable<Entity>("ConnectionString"),
-                    Schema     = Constant(schema.ConvertToEntity())
-                },
+                new SqlCreateTable() { Schema = Constant(schema.ConvertToEntity()) },
                 new SqlInsert()
                 {
-                    Connection = GetVariable<Entity>("ConnectionString"),
-                    Schema     = Constant(schema.ConvertToEntity()),
-                    Entities   = Array(CreateEntityArray(numberOfEntities)),
+                    Schema   = Constant(schema.ConvertToEntity()),
+                    Entities = Array(CreateEntityArray(numberOfEntities)),
+                },
+                new SetVariable<int>()
+                {
+                    Value = new EntityGetValue<int>()
+                    {
+                        Entity = new ElementAtIndex<Entity>()
+                        {
+                            Array = new SqlQuery()
+                            {
+                                Query = Constant("SELECT COUNT(*) FROM MyTable4")
+                            },
+                            Index = Constant(0)
+                        },
+                        Property = Constant("Count(*)")
+                    },
+                    Variable = new VariableName("ActualCount")
+                },
+                new AssertEqual<int>()
+                {
+                    Left = GetVariable<int>("ActualCount"), Right = Constant(3)
                 }
             },
             FinalStep = new DoNothing()
