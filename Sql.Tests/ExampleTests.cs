@@ -68,8 +68,8 @@ public partial class ExampleTests
         r.ShouldBeSuccessful();
     }
 
-    //[Fact(Skip = "skip")]
-    [Fact]
+    [Fact(Skip = "skip")]
+    //[Fact]
     [Trait("Category", "Integration")]
     public async Task RunObjectSequence()
     {
