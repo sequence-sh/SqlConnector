@@ -86,26 +86,27 @@ public sealed class SqlInsert : CompoundStep<Unit>
         const int maxQueryParameters = 2099;
         var       batchSize          = maxQueryParameters / schema.Value.Properties.Count;
 
-        var batches = MoreEnumerable.Batch(elements.Value, batchSize);
+        var batches = elements.Value.Batch(batchSize);
 
         var shouldQuoteFieldNames =
             ShouldQuoteFieldNames(databaseConnectionMetadata.Value.DatabaseType);
 
         foreach (var batch in batches)
         {
-            using var dbCommand = conn.CreateCommand();
-
-            var setCommandResult = SetCommand(
+            var commandDataResult = GetCommandData(
                 schema.Value,
                 postgresSchema,
                 shouldQuoteFieldNames,
                 batch,
-                dbCommand,
                 stateMonad
             );
 
-            if (setCommandResult.IsFailure)
-                return setCommandResult.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
+            if (commandDataResult.IsFailure)
+                return commandDataResult.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
+
+            using var dbCommand = conn.CreateCommand();
+
+            commandDataResult.Value.SetCommand(dbCommand);
 
             int rowsAffected;
 
@@ -172,12 +173,26 @@ public sealed class SqlInsert : CompoundStep<Unit>
         };
     }
 
-    private Result<Unit, IErrorBuilder> SetCommand(
+    public record CommandData(
+        string CommandText,
+        IReadOnlyList<(string Parameter, object Value, DbType DbType)> Parameters)
+    {
+        public void SetCommand(IDbCommand command)
+        {
+            command.CommandText = CommandText;
+
+            foreach (var (parameter, value, dbType) in Parameters)
+            {
+                command.AddParameter(parameter, value, dbType);
+            }
+        }
+    }
+
+    private Result<CommandData, IErrorBuilder> GetCommandData(
         Schema schema,
         string? postgresSchemaName,
         bool quoteFieldNames,
         IEnumerable<Entity> entities,
-        IDbCommand command,
         IStateMonad stateMonad)
     {
         var stringBuilder = new StringBuilder();
@@ -186,7 +201,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
         var tableName = Extensions.CheckSqlObjectName(schema.Name);
 
         if (tableName.IsFailure)
-            return tableName.ConvertFailure<Unit>();
+            return tableName.ConvertFailure<CommandData>();
 
         if (string.IsNullOrWhiteSpace(postgresSchemaName))
             stringBuilder.Append($"INSERT INTO {tableName.Value} (");
@@ -206,11 +221,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
                 errors.Add(columnName.Error);
             else
             {
-                if (quoteFieldNames)
-                    stringBuilder.Append($"\"{columnName.Value}\"");
-                else
-                    stringBuilder.Append($"{columnName.Value}");
-
+                stringBuilder.Append($"{Extensions.MaybeQuote(columnName.Value, quoteFieldNames)}");
                 first = false;
             }
         }
@@ -218,6 +229,8 @@ public sealed class SqlInsert : CompoundStep<Unit>
         stringBuilder.AppendLine(")");
         stringBuilder.Append("VALUES");
         var i = 0;
+
+        var parameters = new List<(string Parameter, object Value, DbType DbType)>();
 
         foreach (var entity in entities)
         {
@@ -253,7 +266,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
                 if (val.IsFailure)
                     errors.Add(val.Error);
                 else
-                    command.AddParameter(valueKey, val.Value.o, val.Value.dbType);
+                    parameters.Add((valueKey!, val.Value.o!, val.Value.dbType));
 
                 stringBuilder.Append($"@{valueKey}");
                 first = false;
@@ -263,15 +276,13 @@ public sealed class SqlInsert : CompoundStep<Unit>
             stringBuilder.AppendLine(")");
         }
 
-        command.CommandText = stringBuilder.ToString();
-
         if (errors.Any())
         {
             var list = ErrorBuilderList.Combine(errors);
-            return Result.Failure<Unit, IErrorBuilder>(list);
+            return Result.Failure<CommandData, IErrorBuilder>(list);
         }
 
-        return Unit.Default;
+        return new CommandData(stringBuilder.ToString(), parameters);
 
         static Result<(object? o, DbType dbType), IErrorBuilder> GetValue(
             Maybe<EntityValue> entityValue,

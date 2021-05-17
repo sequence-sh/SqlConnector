@@ -50,10 +50,10 @@ public sealed class CreateMySQLConnectionString : CompoundStep<Entity>
 
         var databaseConnection = new DatabaseConnectionMetadata
         {
-            ConnectionString = connectionString, DatabaseType = DatabaseType.MsSql
+            ConnectionString = connectionString, DatabaseType = DatabaseType.MySql
         };
 
-        var entity = EntityConversionHelpers.ConvertToEntity(databaseConnection);
+        var entity = databaseConnection.ConvertToEntity();
 
         return entity;
     }

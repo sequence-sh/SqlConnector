@@ -29,7 +29,7 @@ public partial class
                 {
                     ConnectionString =
                         "Server=Server;Port=1234;Database=Database;Uid=UserName;Pwd=Password;",
-                    DatabaseType = DatabaseType.MsSql
+                    DatabaseType = DatabaseType.MySql
                 }.ConvertToEntity()
             );
         }
