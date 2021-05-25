@@ -11,6 +11,9 @@ using Entity = Reductech.EDR.Core.Entity;
 namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
+/// <summary>
+/// Creates a PostgreSQL connection string
+/// </summary>
 public sealed class CreatePostgresConnectionString : CompoundStep<Entity>
 {
     /// <inheritdoc />

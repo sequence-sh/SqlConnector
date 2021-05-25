@@ -11,6 +11,9 @@ using Entity = Reductech.EDR.Core.Entity;
 namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
+/// <summary>
+/// Create a database connection string for a MySQL database.
+/// </summary>
 public sealed class CreateMySQLConnectionString : CompoundStep<Entity>
 {
     /// <inheritdoc />

@@ -5,6 +5,9 @@ using Reductech.EDR.Core.Internal.Logging;
 namespace Reductech.EDR.Connectors.Sql
 {
 
+/// <summary>
+/// Log situations for the SQL Connector.
+/// </summary>
 public sealed record LogSituationSql : LogSituationBase
 {
     private LogSituationSql(string code, LogLevel logLevel) : base(code, logLevel) { }
