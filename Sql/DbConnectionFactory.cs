@@ -1,18 +1,26 @@
 ﻿using System;
 using System.Data;
-using System.Data.SqlClient;
 using System.Data.SQLite;
+using Microsoft.Data.SqlClient;
 using MySqlConnector;
 using Npgsql;
 
 namespace Reductech.EDR.Connectors.Sql
 {
 
+/// <inheritdoc />
 public class DbConnectionFactory : IDbConnectionFactory
 {
+    /// <summary>
+    /// Name of the database connection.
+    /// </summary>
     public const string DbConnectionName = "DbConnection";
 
     private DbConnectionFactory() { }
+
+    /// <summary>
+    /// THE instance
+    /// </summary>
     public static IDbConnectionFactory Instance { get; } = new DbConnectionFactory();
 
     /// <inheritdoc />
