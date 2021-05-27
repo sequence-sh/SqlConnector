@@ -19,7 +19,7 @@
     <PackageTags>ediscovery;forensics;sql;databases;automation;orchestration;edrm</PackageTags>
 
     <PackageProjectUrl>https://gitlab.com/reductech/edr/connectors/sql</PackageProjectUrl>
-    <RepositoryUrl>https://gitlab.com/reductech/edr/connectors/sql</RepositoryUrl>
+    <RepositoryUrl>https://gitlab.com/reductech/edr/connectors/sql.git</RepositoryUrl>
     <PackageReleaseNotes>https://gitlab.com/reductech/edr/connectors/sql/-/blob/master/CHANGELOG.md</PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 
@@ -70,7 +70,12 @@
 
   <Target Name="AddConnectorDependencies" BeforeTargets="GenerateNuspec" Condition="$(PackConnector) != ''">
     <ItemGroup>
-      <_PackageFiles Include="@(RuntimeCopyLocalItems)" PackagePath="$(BuildOutputTargetFolder)/$(TargetFramework)/%(Filename)%(Extension)" />
+      <_PackageFiles Include="@(RuntimeCopyLocalItems)"
+                     PackageFlatten="false"
+                     PackagePath="$(BuildOutputTargetFolder)/$(TargetFramework)/%(RecursiveDir)%(Filename)%(Extension)" />
+      <_PackageFiles Include="@(RuntimeTargetsCopyLocalItems)"
+                     PackageFlatten="false"
+                     PackagePath="$(BuildOutputTargetFolder)/$(TargetFramework)/$([System.Text.RegularExpressions.Regex]::Match(%(RuntimeTargetsCopyLocalItems.Identity), '.+(runtimes(\\|/).*)$').Groups[1].Value)" />
     </ItemGroup>
   </Target>
 
