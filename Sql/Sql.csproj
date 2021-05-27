@@ -64,8 +64,16 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup Condition="$(PackConnector) != ''">
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <PropertyGroup Condition="$(PackConnector) != ''">
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageLicenseExpression></PackageLicenseExpression>
   </PropertyGroup>
 
   <Target Name="AddConnectorDependencies" BeforeTargets="GenerateNuspec" Condition="$(PackConnector) != ''">
