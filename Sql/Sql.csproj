@@ -84,6 +84,8 @@
       <_PackageFiles Include="@(RuntimeTargetsCopyLocalItems)"
                      PackageFlatten="false"
                      PackagePath="$(BuildOutputTargetFolder)/$(TargetFramework)/$([System.Text.RegularExpressions.Regex]::Match(%(RuntimeTargetsCopyLocalItems.Identity), '.+(runtimes(\\|/).*)$').Groups[1].Value)" />
+      <_PackageFiles Include="$(OutputPath)$(AssemblyName).deps.json"
+                     PackagePath="$(BuildOutputTargetFolder)/$(TargetFramework)/$(AssemblyName).deps.json" />
     </ItemGroup>
   </Target>
 
