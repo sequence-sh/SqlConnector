@@ -173,10 +173,16 @@ public sealed class SqlInsert : CompoundStep<Unit>
         };
     }
 
+    /// <summary>
+    /// The command and parameters used for inserting table rows
+    /// </summary>
     public record CommandData(
         string CommandText,
         IReadOnlyList<(string Parameter, object Value, DbType DbType)> Parameters)
     {
+        /// <summary>
+        /// Create a command from the CommandText and Parameters
+        /// </summary>
         public void SetCommand(IDbCommand command)
         {
             command.CommandText = CommandText;

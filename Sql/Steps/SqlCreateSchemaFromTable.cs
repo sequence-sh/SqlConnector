@@ -265,6 +265,9 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         }
     }
 
+    /// <summary>
+    /// Convert a SQL create table statement to an SCL Schema.
+    /// </summary>
     public static Result<Schema, IErrorBuilder> ToSchema(SqlCreateTableStatement statement)
     {
         var schemaProperties = new Dictionary<string, SchemaProperty>();

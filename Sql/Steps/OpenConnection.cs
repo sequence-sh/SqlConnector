@@ -14,6 +14,9 @@ using Entity = Reductech.EDR.Core.Entity;
 namespace Reductech.EDR.Connectors.Sql.Steps
 {
 
+/// <summary>
+/// Open a new connection to a database.
+/// </summary>
 public class OpenConnection : CompoundStep<Unit>
 {
     /// <inheritdoc />
@@ -36,7 +39,12 @@ public class OpenConnection : CompoundStep<Unit>
         return r;
     }
 
-    [StepProperty(1)][Required] public IStep<Entity> Connection { get; set; } = null!;
+    /// <summary>
+    /// Database-specific connection properties.
+    /// </summary>
+    [StepProperty(1)]
+    [Required]
+    public IStep<Entity> Connection { get; set; } = null!;
 
     /// <inheritdoc />
     public override IStepFactory StepFactory => OpenConnectionStepFactory.Instance;

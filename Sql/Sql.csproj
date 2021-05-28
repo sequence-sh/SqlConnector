@@ -6,19 +6,20 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>Reductech.EDR.Connectors.Sql</RootNamespace>
     <AssemblyName>Reductech.EDR.Connectors.Sql</AssemblyName>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <Nullable>enable</Nullable>
-    <Version>0.9.0$(VersionSuffix)</Version>
+    <Version>0.9.1$(VersionSuffix)</Version>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>Reductech.EDR.Connectors.Sql</PackageId>
-    <Title>EDR 4 Database Connector</Title>
+    <Title>EDR SQL Database Connector</Title>
     <Description>Class library for building sequences that interact with SQL databases</Description>
     <Product>EDR</Product>
     <PackageTags>ediscovery;forensics;sql;databases;automation;orchestration;edrm</PackageTags>
 
     <PackageProjectUrl>https://gitlab.com/reductech/edr/connectors/sql</PackageProjectUrl>
-    <RepositoryUrl>https://gitlab.com/reductech/edr/connectors/sql</RepositoryUrl>
+    <RepositoryUrl>https://gitlab.com/reductech/edr/connectors/sql.git</RepositoryUrl>
     <PackageReleaseNotes>https://gitlab.com/reductech/edr/connectors/sql/-/blob/master/CHANGELOG.md</PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 
@@ -28,14 +29,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SqlServer.Management.SqlParser" Version="160.20216.14" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="2.1.3" />
+    <PackageReference Include="Microsoft.SqlServer.Management.SqlParser" Version="160.21099.39" />
     <PackageReference Include="morelinq" Version="3.3.2" />
-    <PackageReference Include="MySqlConnector" Version="1.2.1" />
-    <PackageReference Include="Npgsql" Version="5.0.3" />
+    <PackageReference Include="MySqlConnector" Version="1.3.8" />
+    <PackageReference Include="Npgsql" Version="5.0.5" />
     <PackageReference Include="Reductech.EDR.Core" Version="0.9.0">
-          <ExcludeAssets>runtime</ExcludeAssets>
+      <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.113.7" />
   </ItemGroup>
 
@@ -63,13 +64,28 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup Condition="$(PackConnector) != ''">
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <PropertyGroup Condition="$(PackConnector) != ''">
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageLicenseExpression></PackageLicenseExpression>
   </PropertyGroup>
 
   <Target Name="AddConnectorDependencies" BeforeTargets="GenerateNuspec" Condition="$(PackConnector) != ''">
     <ItemGroup>
-      <_PackageFiles Include="@(RuntimeCopyLocalItems)" PackagePath="$(BuildOutputTargetFolder)/$(TargetFramework)/%(Filename)%(Extension)" />
+      <_PackageFiles Include="@(RuntimeCopyLocalItems)"
+                     PackageFlatten="false"
+                     PackagePath="$(BuildOutputTargetFolder)/$(TargetFramework)/%(RecursiveDir)%(Filename)%(Extension)" />
+      <_PackageFiles Include="@(RuntimeTargetsCopyLocalItems)"
+                     PackageFlatten="false"
+                     PackagePath="$(BuildOutputTargetFolder)/$(TargetFramework)/$([System.Text.RegularExpressions.Regex]::Match(%(RuntimeTargetsCopyLocalItems.Identity), '.+(runtimes(\\|/).*)$').Groups[1].Value)" />
+      <_PackageFiles Include="$(OutputPath)$(AssemblyName).deps.json"
+                     PackagePath="$(BuildOutputTargetFolder)/$(TargetFramework)/$(AssemblyName).deps.json" />
     </ItemGroup>
   </Target>
 
