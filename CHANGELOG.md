@@ -1,3 +1,14 @@
+# v0.9.1 (2021-05-28)
+
+Fix issues with using MS SQL when packaged as a connector.
+
+## Issues Closed in this Release
+
+### Bug Fixes
+
+- Running from edr throws 'System.Data.SqlClient is not supported on this platform' #18
+- CreateMySQLConnectionString returns the wrong database type #16
+
 # v0.9.0 (2021-05-14)
 
 ## Summary of Changes
