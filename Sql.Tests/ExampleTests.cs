@@ -42,9 +42,7 @@ public partial class ExampleTests
 
         var assembly = typeof(CreateMsSQLConnectionString).Assembly!;
 
-        var sfs = StepFactoryStore.Create(
-            new ConnectorData(ConnectorSettings.DefaultForAssembly(assembly), assembly)
-        );
+        var sfs = StepFactoryStore.CreateFromAssemblies(assembly);
 
         var context = new ExternalContext(
             ExternalContext.Default.ExternalProcessRunner,
@@ -53,7 +51,6 @@ public partial class ExampleTests
         );
 
         var runner = new SCLRunner(
-            SCLSettings.EmptySettings,
             logger,
             sfs,
             context
@@ -228,7 +225,6 @@ public partial class ExampleTests
 
         var monad = new StateMonad(
             TestOutputHelper.BuildLogger(),
-            SCLSettings.EmptySettings,
             StepFactoryStore.Create(),
             context,
             new Dictionary<string, object>()
