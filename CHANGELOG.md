@@ -1,3 +1,11 @@
+# v0.10.0 (2021-07-02)
+
+## Issues Closed in this Release
+
+### Maintenance
+
+- Update Core to latest and remove SCLSettings #20
+
 # v0.9.1 (2021-05-28)
 
 Fix issues with using MS SQL when packaged as a connector.
