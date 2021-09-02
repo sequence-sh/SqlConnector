@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
@@ -40,7 +41,7 @@ public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
                     Type = SCLType.String, Multiplicity = Multiplicity.UpToOne
                 }
             },
-        }
+        }.ToImmutableSortedDictionary()
     };
 
     /// <inheritdoc />
@@ -126,20 +127,22 @@ public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
         {
             static Schema Create(
                 string tableName,
-                Action<Schema> action,
+                Func<Schema, Schema>? transform,
                 params (string name, SchemaProperty schemaProperty)[] schemaProperties)
             {
                 Schema s = new()
                 {
                     Name = tableName,
                     Properties = schemaProperties.ToDictionary(
-                        x => x.name,
-                        x => x.schemaProperty
-                    ),
+                            x => x.name,
+                            x => x.schemaProperty
+                        )
+                        .ToImmutableSortedDictionary(),
                     ExtraProperties = ExtraPropertyBehavior.Fail
                 };
 
-                action(s);
+                if (transform is not null)
+                    s = transform(s);
 
                 return s;
             }
@@ -147,7 +150,7 @@ public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
             yield return new GetCommandTest(
                 Create(
                     "SQLiteTable",
-                    x => { },
+                    null,
                     ("MyColumn",
                      new SchemaProperty()
                      {
@@ -161,7 +164,7 @@ public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
             yield return new GetCommandTest(
                 Create(
                     "MsSQLTable",
-                    x => { },
+                    null,
                     ("MyColumn",
                      new SchemaProperty()
                      {
@@ -177,7 +180,7 @@ public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
             yield return new GetCommandTest(
                 Create(
                     "PostgresTable",
-                    x => { },
+                    null,
                     ("MyColumn",
                      new SchemaProperty()
                      {
@@ -191,7 +194,7 @@ public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
             yield return new GetCommandTest(
                 Create(
                     "MySQLTable",
-                    x => { },
+                    null,
                     ("MyColumn",
                      new SchemaProperty()
                      {
@@ -207,7 +210,7 @@ MyColumn TEXT NOT NULL
             yield return new GetCommandTest(
                 Create(
                     "MariaDbTable",
-                    x => { },
+                    null,
                     ("MyColumn",
                      new SchemaProperty()
                      {
@@ -223,7 +226,7 @@ MyColumn TEXT NOT NULL
             yield return new GetCommandTest(
                 Create(
                     "AllowExtraProperties",
-                    s => s.ExtraProperties = ExtraPropertyBehavior.Allow
+                    s => s with { ExtraProperties = ExtraPropertyBehavior.Allow }
                 ),
                 DatabaseType.MySql,
                 ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder(
@@ -234,7 +237,7 @@ MyColumn TEXT NOT NULL
             yield return new GetCommandTest(
                 Create(
                     "Bad^Table^Name",
-                    s => { }
+                    null
                 ),
                 DatabaseType.MySql,
                 ErrorCode_Sql.InvalidName.ToErrorBuilder("Bad^Table^Name")
@@ -243,7 +246,7 @@ MyColumn TEXT NOT NULL
             yield return new GetCommandTest(
                 Create(
                     "BadColumnNameTable",
-                    s => { },
+                    null,
                     ("Bad^Column^Name",
                      new SchemaProperty()
                      {
@@ -257,7 +260,7 @@ MyColumn TEXT NOT NULL
             yield return new GetCommandTest(
                 Create(
                     "BadDataTypeTable",
-                    s => { },
+                    null,
                     ("BadDataTypeColumn",
                      new SchemaProperty()
                      {
@@ -272,7 +275,7 @@ MyColumn TEXT NOT NULL
             yield return new GetCommandTest(
                 Create(
                     "MultiplicityAnyTable",
-                    s => { },
+                    null,
                     ("MultiplicityAnyColumn",
                      new SchemaProperty()
                      {
@@ -288,7 +291,7 @@ MyColumn TEXT NOT NULL
             yield return new GetCommandTest(
                 Create(
                     "MultiplicityAtLeastOneTable",
-                    s => { },
+                    null,
                     ("MultiplicityAtLeastOneColumn",
                      new SchemaProperty()
                      {

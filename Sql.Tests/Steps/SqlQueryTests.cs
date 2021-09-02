@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
+using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Steps;
 using Reductech.EDR.Core.TestHarness;
 using Reductech.EDR.Core.Util;
@@ -35,15 +36,18 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
                                 Connection = GetConnectionMetadata(DatabaseType.SQLite),
                                 Query      = Constant(@"My Query String")
                             },
-                            Action = new Print<Entity>() { Value = GetEntityVariable }
+                            Action = new LambdaFunction<Entity, Unit>(
+                                null,
+                                new Print<Entity>() { Value = GetEntityVariable }
+                            )
                         },
                         Unit.Default
                     ).WithDbConnectionInState(DatabaseType.SQLite)
                     .WithConsoleAction(
-                        x => x.Setup(c => c.WriteLine("(Name: \"Mark\" Id: \"500\")"))
+                        x => x.Setup(c => c.WriteLine("('Name': \"Mark\" 'Id': \"500\")"))
                     )
                     .WithConsoleAction(
-                        x => x.Setup(c => c.WriteLine("(Name: \"Ruth\" Id: \"501\")"))
+                        x => x.Setup(c => c.WriteLine("('Name': \"Ruth\" 'Id': \"501\")"))
                     )
                     .WithContextMock(
                         DbConnectionFactory.DbConnectionName,

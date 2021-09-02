@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Entities;
@@ -75,7 +76,7 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                             EnumType     = "MyEnum"
                         }
                     },
-                }
+                }.ToImmutableSortedDictionary()
             };
 
             static Entity[] CreateEntityArray(int number)
