@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
@@ -141,13 +142,16 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                                 break;
                             case "IS_NULLABLE":
                             {
-                                schemaProperty.Multiplicity = value
-                                    switch
-                                    {
-                                        "YES" => Multiplicity.UpToOne,
-                                        "NO"  => Multiplicity.ExactlyOne,
-                                        _     => throw new ArgumentException(value)
-                                    };
+                                schemaProperty = schemaProperty with
+                                {
+                                    Multiplicity = value
+                                        switch
+                                        {
+                                            "YES" => Multiplicity.UpToOne,
+                                            "NO"  => Multiplicity.ExactlyOne,
+                                            _     => throw new ArgumentException(value)
+                                        }
+                                };
 
                                 break;
                             }
@@ -162,7 +166,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                                 if (r.IsFailure)
                                     return r.ConvertFailure<Entity>();
 
-                                schemaProperty.Type = r.Value;
+                                schemaProperty = schemaProperty with { Type = r.Value };
 
                                 break;
                             }
@@ -182,7 +186,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
             {
                 Name            = tableName,
                 ExtraProperties = ExtraPropertyBehavior.Fail,
-                Properties      = properties
+                Properties      = properties.ToImmutableSortedDictionary()
             };
 
             return schema.ConvertToEntity();
@@ -305,7 +309,7 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         {
             ExtraProperties = ExtraPropertyBehavior.Fail,
             Name            = statement.Name.ObjectName.Value,
-            Properties      = schemaProperties,
+            Properties      = schemaProperties.ToImmutableSortedDictionary(),
         };
     }
 }

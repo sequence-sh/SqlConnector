@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
@@ -38,7 +39,7 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                             Type = SCLType.String, Multiplicity = Multiplicity.UpToOne
                         }
                     }
-                }
+                }.ToImmutableSortedDictionary()
             };
 
             yield return new StepCase(

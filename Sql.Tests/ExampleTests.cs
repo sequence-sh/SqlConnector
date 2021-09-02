@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -126,7 +127,7 @@ public partial class ExampleTests
                         EnumType     = "MyEnum"
                     }
                 },
-            }
+            }.ToImmutableSortedDictionary()
         };
 
         static Entity[] CreateEntityArray(int number)
