@@ -37,7 +37,7 @@
     <PackageReference Include="Reductech.EDR.Core" Version="0.11.0-a.master.2109021229">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.114.3" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115" />
   </ItemGroup>
 
   <ItemGroup>
