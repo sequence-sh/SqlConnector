@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Linq;
+using Json.More;
+using Json.Schema;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
-using Reductech.EDR.Core.Entities;
-using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Steps;
 using Reductech.EDR.Core.TestHarness;
@@ -25,59 +25,20 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
             var    inMemoryConnectionString = "Data Source=InMemorySample;Mode=Memory;Cache=Shared";
             string tableName                = "MyTable";
 
-            var schema = new Schema()
-            {
-                Name            = tableName,
-                ExtraProperties = ExtraPropertyBehavior.Fail,
-                Properties = new Dictionary<string, SchemaProperty>()
-                {
-                    {
-                        "Id",
-                        new SchemaProperty()
-                        {
-                            Type = SCLType.Integer, Multiplicity = Multiplicity.ExactlyOne
-                        }
-                    },
-                    {
-                        "Name",
-                        new SchemaProperty()
-                        {
-                            Type = SCLType.String, Multiplicity = Multiplicity.UpToOne
-                        }
-                    },
-                    {
-                        "TestDouble",
-                        new SchemaProperty()
-                        {
-                            Type = SCLType.Double, Multiplicity = Multiplicity.UpToOne
-                        }
-                    },
-                    {
-                        "TestDate",
-                        new SchemaProperty()
-                        {
-                            Type = SCLType.Date, Multiplicity = Multiplicity.UpToOne
-                        }
-                    },
-                    {
-                        "TestBool",
-                        new SchemaProperty()
-                        {
-                            Type = SCLType.Bool, Multiplicity = Multiplicity.UpToOne
-                        }
-                    },
-                    {
-                        "TestEnum",
-                        new SchemaProperty()
-                        {
-                            Type         = SCLType.Enum,
-                            Multiplicity = Multiplicity.UpToOne,
-                            Values       = new List<string> { "EnumValue", "EnumValue2" },
-                            EnumType     = "MyEnum"
-                        }
-                    },
-                }.ToImmutableSortedDictionary()
-            };
+            var schemaBuilder = new JsonSchemaBuilder()
+                .Title(tableName)
+                .Properties(
+                    ("Id", SchemaHelpers.AnyInt),
+                    ("Name", SchemaHelpers.AnyString),
+                    ("TestDouble", SchemaHelpers.AnyNumber),
+                    ("TestDate", SchemaHelpers.AnyDateTime),
+                    ("TestBool", SchemaHelpers.AnyBool),
+                    ("TestEnum", SchemaHelpers.EnumProperty("EnumValue", "EnumValue2"))
+                )
+                .AdditionalProperties(JsonSchema.False);
+
+            var schema         = schemaBuilder.Build();
+            var schemaAsEntity = schema.ConvertToEntity();
 
             static Entity[] CreateEntityArray(int number)
             {
@@ -116,17 +77,19 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                                         DatabaseType.SQLite,
                                         inMemoryConnectionString
                                     ),
-                                Command = Constant($"DROP TABLE IF EXISTS {schema.Name}")
+                                Command = Constant(
+                                    $"DROP TABLE IF EXISTS {schema.Keywords!.OfType<TitleKeyword>().Select(x => x.Value).FirstOrDefault()}"
+                                )
                             },
                             new SqlCreateTable()
                             {
                                 //no need to set connection here, the previous connection is remembered
-                                Schema = Constant(schema.ConvertToEntity())
+                                Schema = Constant(schemaAsEntity)
                             },
                             new SqlInsert
                             {
                                 //no need to set connection here, the previous connection is remembered
-                                Schema   = Constant(schema.ConvertToEntity()),
+                                Schema   = Constant(schemaAsEntity),
                                 Entities = Array(CreateEntityArray(1))
                             }
                         },
@@ -153,12 +116,21 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                                         DatabaseType.SQLite,
                                         inMemoryConnectionString
                                     ),
-                                Command = Constant($"DROP TABLE IF EXISTS {schema.Name}")
+                                Command = Constant(
+                                    $"DROP TABLE IF EXISTS {schema.Keywords!.OfType<TitleKeyword>().Select(x => x.Value).FirstOrDefault()}"
+                                )
                             },
-                            new SqlCreateTable() { Schema = Constant(schema.ConvertToEntity()) },
+                            new SqlCreateTable()
+                            {
+                                Schema = Constant(
+                                    Entity.Create(schema.ToJsonDocument().RootElement)
+                                )
+                            },
                             new SqlInsert
                             {
-                                Schema   = Constant(schema.ConvertToEntity()),
+                                Schema = Constant(
+                                    Entity.Create(schema.ToJsonDocument().RootElement)
+                                ),
                                 Entities = Array(CreateEntityArray(3000))
                             }
                         },

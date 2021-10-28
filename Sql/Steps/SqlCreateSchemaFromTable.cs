@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using Json.More;
+using Json.Schema;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
-using Reductech.EDR.Core.Entities;
-using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
 using Entity = Reductech.EDR.Core.Entity;
@@ -88,6 +87,50 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         return r;
     }
 
+    private static void SetType(JsonSchemaBuilder builder, SCLType sclType)
+    {
+        switch (sclType)
+        {
+            case SCLType.String:
+            {
+                builder.Type(SchemaValueType.String);
+                break;
+            }
+            case SCLType.Integer:
+            {
+                builder.Type(SchemaValueType.Integer);
+                break;
+            }
+            case SCLType.Double:
+            {
+                builder.Type(SchemaValueType.Number);
+                break;
+            }
+            case SCLType.Enum:
+            {
+                builder.Type(SchemaValueType.String);
+                break;
+            }
+            case SCLType.Bool:
+            {
+                builder.Type(SchemaValueType.Boolean);
+                break;
+            }
+            case SCLType.Date:
+            {
+                builder.Type(SchemaValueType.String);
+                builder.Format(new Format("date-time"));
+                break;
+            }
+            case SCLType.Entity:
+            {
+                builder.Type(SchemaValueType.Object);
+                break;
+            }
+            default: throw new ArgumentOutOfRangeException();
+        }
+    }
+
     private static Result<Entity, IErrorBuilder> Convert(
         IDbCommand command,
         string tableName,
@@ -117,7 +160,8 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                 );
             }
 
-            var properties = new Dictionary<string, SchemaProperty>();
+            var properties         = new Dictionary<string, JsonSchema>();
+            var requiredProperties = new List<string>();
 
             try
             {
@@ -125,8 +169,9 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
 
                 while (!reader.IsClosed && reader.Read())
                 {
-                    SchemaProperty schemaProperty = new();
-                    string         propertyName   = "";
+                    JsonSchemaBuilder builder      = new();
+                    string            propertyName = "";
+                    var               required     = false;
 
                     reader.GetValues(row);
 
@@ -138,20 +183,16 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                         switch (name.ToUpperInvariant())
                         {
                             case "COLUMN_NAME":
+                            {
                                 propertyName = value;
+                                //builder.Title(value);
+                            }
+
                                 break;
                             case "IS_NULLABLE":
                             {
-                                schemaProperty = schemaProperty with
-                                {
-                                    Multiplicity = value
-                                        switch
-                                        {
-                                            "YES" => Multiplicity.UpToOne,
-                                            "NO"  => Multiplicity.ExactlyOne,
-                                            _     => throw new ArgumentException(value)
-                                        }
-                                };
+                                if (value.Equals("NO", StringComparison.OrdinalIgnoreCase))
+                                    required = true;
 
                                 break;
                             }
@@ -166,14 +207,17 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                                 if (r.IsFailure)
                                     return r.ConvertFailure<Entity>();
 
-                                schemaProperty = schemaProperty with { Type = r.Value };
+                                SetType(builder, r.Value);
 
                                 break;
                             }
                         }
                     }
 
-                    properties.Add(propertyName, schemaProperty);
+                    properties.Add(propertyName, builder.Build());
+
+                    if (required)
+                        requiredProperties.Add(propertyName);
                 }
             }
             finally
@@ -182,14 +226,17 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                 reader.Dispose();
             }
 
-            Schema schema = new()
-            {
-                Name            = tableName,
-                ExtraProperties = ExtraPropertyBehavior.Fail,
-                Properties      = properties.ToImmutableSortedDictionary()
-            };
+            var schemaBuilder = new JsonSchemaBuilder()
+                .Title(tableName)
+                .AdditionalProperties(JsonSchema.False)
+                .Properties(properties);
 
-            return schema.ConvertToEntity();
+            if (requiredProperties.Any())
+                schemaBuilder.Required(requiredProperties);
+
+            var schema = schemaBuilder.Build();
+
+            return Entity.Create(schema.ToJsonDocument().RootElement);
         }
 
         static Result<Entity, IErrorBuilder> ConvertSQLite(IDbCommand command, string tableName)
@@ -210,15 +257,16 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
             var parseResult =
                 Parser.Parse(queryResult);
 
-            var schemas = parseResult.Script
+            var statements = parseResult.Script
                 .SelfAndDescendants<SqlCodeObject>(x => x.Children)
                 .OfType<SqlCreateTableStatement>()
                 .ToList();
 
-            if (schemas.Count != 1)
+            if (statements.Count != 1)
                 return ErrorCode_Sql.CouldNotGetCreateTable.ToErrorBuilder(tableName);
 
-            var entity = ToSchema(schemas.Single()).Map(x => x.ConvertToEntity());
+            var entity = ToSchema(statements.Single())
+                .Map(x => Entity.Create(x.ToJsonDocument().RootElement));
 
             return entity;
         }
@@ -272,9 +320,10 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
     /// <summary>
     /// Convert a SQL create table statement to an SCL Schema.
     /// </summary>
-    public static Result<Schema, IErrorBuilder> ToSchema(SqlCreateTableStatement statement)
+    public static Result<JsonSchema, IErrorBuilder> ToSchema(SqlCreateTableStatement statement)
     {
-        var schemaProperties = new Dictionary<string, SchemaProperty>();
+        var schemaProperties   = new Dictionary<string, JsonSchema>();
+        var requiredProperties = new List<string>();
 
         var errors = new List<IErrorBuilder>();
 
@@ -291,26 +340,29 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
                 errors.Add(r.Error);
             else
             {
-                var multiplicity =
-                    columnDefinition.Constraints.Any(x => x.Type == SqlConstraintType.NotNull)
-                        ? Multiplicity.ExactlyOne
-                        : Multiplicity.UpToOne;
+                if (columnDefinition.Constraints.Any(x => x.Type == SqlConstraintType.NotNull))
+                    requiredProperties.Add(columnDefinition.Name.Value);
 
-                var property = new SchemaProperty { Type = r.Value, Multiplicity = multiplicity };
+                var builder = new JsonSchemaBuilder();
 
-                schemaProperties.Add(columnDefinition.Name.Value, property);
+                SetType(builder, r.Value);
+
+                schemaProperties.Add(columnDefinition.Name.Value, builder.Build());
             }
         }
 
         if (errors.Any())
-            return Result.Failure<Schema, IErrorBuilder>(ErrorBuilderList.Combine(errors));
+            return Result.Failure<JsonSchema, IErrorBuilder>(ErrorBuilderList.Combine(errors));
 
-        return new Schema
-        {
-            ExtraProperties = ExtraPropertyBehavior.Fail,
-            Name            = statement.Name.ObjectName.Value,
-            Properties      = schemaProperties.ToImmutableSortedDictionary(),
-        };
+        var mainBuilder = new JsonSchemaBuilder()
+            .Title(statement.Name.ObjectName.Value)
+            .AdditionalProperties(JsonSchema.False)
+            .Properties(schemaProperties);
+
+        if (requiredProperties.Any())
+            mainBuilder.Required(requiredProperties);
+
+        return mainBuilder.Build();
     }
 }
 

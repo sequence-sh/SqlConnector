@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Json.More;
+using Json.Schema;
 using Microsoft.Extensions.Logging;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Abstractions;
-using Reductech.EDR.Core.Entities;
-using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Serialization;
 using Reductech.EDR.Core.Steps;
@@ -41,7 +41,7 @@ public partial class ExampleTests
 
         var logger = TestOutputHelper.BuildLogger(LogLevel.Information);
 
-        var assembly = typeof(CreateMsSQLConnectionString).Assembly!;
+        var assembly = typeof(CreateMsSQLConnectionString).Assembly;
 
         var sfs = StepFactoryStore.CreateFromAssemblies(assembly);
 
@@ -54,7 +54,8 @@ public partial class ExampleTests
         var runner = new SCLRunner(
             logger,
             sfs,
-            context
+            context,
+            DefaultRestClientFactory.Instance
         );
 
         var r = await runner.RunSequenceFromTextAsync(
@@ -76,59 +77,17 @@ public partial class ExampleTests
 
         const string tableName = "MyTable4";
 
-        var schema = new Schema()
-        {
-            Name            = tableName,
-            ExtraProperties = ExtraPropertyBehavior.Fail,
-            Properties = new Dictionary<string, SchemaProperty>()
-            {
-                {
-                    "Id",
-                    new SchemaProperty()
-                    {
-                        Type = SCLType.Integer, Multiplicity = Multiplicity.ExactlyOne
-                    }
-                },
-                {
-                    "Name",
-                    new SchemaProperty()
-                    {
-                        Type = SCLType.String, Multiplicity = Multiplicity.UpToOne
-                    }
-                },
-                {
-                    "TestDouble",
-                    new SchemaProperty()
-                    {
-                        Type = SCLType.Double, Multiplicity = Multiplicity.UpToOne
-                    }
-                },
-                {
-                    "TestDate",
-                    new SchemaProperty()
-                    {
-                        Type = SCLType.Date, Multiplicity = Multiplicity.UpToOne
-                    }
-                },
-                {
-                    "TestBool",
-                    new SchemaProperty()
-                    {
-                        Type = SCLType.Bool, Multiplicity = Multiplicity.UpToOne
-                    }
-                },
-                {
-                    "TestEnum",
-                    new SchemaProperty()
-                    {
-                        Type         = SCLType.Enum,
-                        Multiplicity = Multiplicity.UpToOne,
-                        Values       = new List<string> { "EnumValue", "EnumValue2" },
-                        EnumType     = "MyEnum"
-                    }
-                },
-            }.ToImmutableSortedDictionary()
-        };
+        var schemaBuilder = new JsonSchemaBuilder()
+            .Title(tableName)
+            .Properties(("Id", SchemaHelpers.AnyInt))
+            .Properties(("Name", SchemaHelpers.AnyString))
+            .Properties(("TestDouble", SchemaHelpers.AnyNumber))
+            .Properties(("TestDate", SchemaHelpers.AnyDateTime))
+            .Properties(("TestBool", SchemaHelpers.AnyBool))
+            .Properties(("TestEnum", SchemaHelpers.EnumProperty("EnumValue", "EnumValue2")))
+            .AdditionalProperties(JsonSchema.False);
+
+        var schema = schemaBuilder.Build();
 
         static Entity[] CreateEntityArray(int number)
         {
@@ -182,12 +141,17 @@ public partial class ExampleTests
                 new SqlCommand()
                 {
                     Connection = GetVariable<Entity>("ConnectionString"),
-                    Command    = Constant($"Drop table if exists {schema.Name};")
+                    Command = Constant(
+                        $"Drop table if exists {schema.Keywords!.OfType<TitleKeyword>().Select(x => x.Value).Single()};"
+                    )
                 },
-                new SqlCreateTable() { Schema = Constant(schema.ConvertToEntity()) },
+                new SqlCreateTable()
+                {
+                    Schema = Constant(Entity.Create(schema.ToJsonDocument().RootElement))
+                },
                 new SqlInsert()
                 {
-                    Schema   = Constant(schema.ConvertToEntity()),
+                    Schema   = Constant(Entity.Create(schema.ToJsonDocument().RootElement)),
                     Entities = Array(CreateEntityArray(numberOfEntities)),
                 },
                 new SetVariable<int>()
@@ -228,6 +192,7 @@ public partial class ExampleTests
             TestOutputHelper.BuildLogger(),
             StepFactoryStore.Create(),
             context,
+            DefaultRestClientFactory.Instance,
             new Dictionary<string, object>()
         );
 

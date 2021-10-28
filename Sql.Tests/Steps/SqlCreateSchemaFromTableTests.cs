@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Data;
+using Json.More;
+using Json.Schema;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
-using Reductech.EDR.Core.Entities;
-using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.TestHarness;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
+using static Reductech.EDR.Connectors.Sql.Tests.SchemaHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests.Steps
 {
@@ -19,28 +19,12 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
     {
         get
         {
-            var expectedSchema = new Schema()
-            {
-                ExtraProperties = ExtraPropertyBehavior.Fail,
-                Name            = "MyTable",
-                Properties = new Dictionary<string, SchemaProperty>()
-                {
-                    {
-                        "Id",
-                        new SchemaProperty()
-                        {
-                            Type = SCLType.Integer, Multiplicity = Multiplicity.ExactlyOne
-                        }
-                    },
-                    {
-                        "Name",
-                        new SchemaProperty()
-                        {
-                            Type = SCLType.String, Multiplicity = Multiplicity.UpToOne
-                        }
-                    }
-                }.ToImmutableSortedDictionary()
-            };
+            var expectedSchema = new JsonSchemaBuilder()
+                .Title("MyTable")
+                .AdditionalProperties(JsonSchema.False)
+                .Properties(("Id", AnyInt), ("Name", AnyString))
+                .Required("Id")
+                .Build();
 
             yield return new StepCase(
                     "Simple SQLite case",
@@ -49,8 +33,7 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                         Connection = GetConnectionMetadata(DatabaseType.SQLite),
                         Table      = Constant("MyTable"),
                     },
-                    expectedSchema
-                        .ConvertToEntity()
+                    Entity.Create(expectedSchema.ToJsonDocument().RootElement)
                 ).WithDbConnectionInState(DatabaseType.SQLite)
                 .WithContextMock(
                     DbConnectionFactory.DbConnectionName,
@@ -82,8 +65,7 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                         Connection = GetConnectionMetadata(DatabaseType.MsSql),
                         Table      = Constant("MyTable"),
                     },
-                    expectedSchema
-                        .ConvertToEntity()
+                    Entity.Create(expectedSchema.ToJsonDocument().RootElement)
                 ).WithDbConnectionInState(DatabaseType.MsSql)
                 .WithContextMock(
                     DbConnectionFactory.DbConnectionName,
@@ -112,8 +94,7 @@ public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchem
                         Connection = GetConnectionMetadata(DatabaseType.Postgres),
                         Table      = Constant("MyTable")
                     },
-                    expectedSchema
-                        .ConvertToEntity()
+                    Entity.Create(expectedSchema.ToJsonDocument().RootElement)
                 ).WithDbConnectionInState(DatabaseType.Postgres)
                 .WithContextMock(
                     DbConnectionFactory.DbConnectionName,
