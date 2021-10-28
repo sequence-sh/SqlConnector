@@ -6,13 +6,14 @@ using CSharpFunctionalExtensions;
 using FluentAssertions;
 using Json.Schema;
 using Reductech.EDR.Connectors.Sql.Steps;
+using Reductech.EDR.Core.Entities;
 using Reductech.EDR.Core.Internal.Errors;
 using Reductech.EDR.Core.TestHarness;
 using Reductech.EDR.Core.Util;
 using Xunit.Abstractions;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
+using static Reductech.EDR.Core.TestHarness.SchemaHelpers;
 using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
-using static Reductech.EDR.Connectors.Sql.Tests.SchemaHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests.Steps
 {

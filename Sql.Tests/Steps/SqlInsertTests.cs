@@ -5,6 +5,7 @@ using Json.More;
 using Json.Schema;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
+using Reductech.EDR.Core.Entities;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Steps;
 using Reductech.EDR.Core.TestHarness;

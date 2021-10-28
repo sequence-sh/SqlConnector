@@ -7,7 +7,7 @@ using Microsoft.SqlServer.Management.SqlParser.Metadata;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.TestHarness;
 using Xunit.Abstractions;
-using static Reductech.EDR.Connectors.Sql.Tests.SchemaHelpers;
+using static Reductech.EDR.Core.TestHarness.SchemaHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {

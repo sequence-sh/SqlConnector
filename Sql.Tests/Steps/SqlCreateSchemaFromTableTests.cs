@@ -6,8 +6,8 @@ using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.TestHarness;
 using static Reductech.EDR.Core.TestHarness.StaticHelpers;
+using static Reductech.EDR.Core.TestHarness.SchemaHelpers;
 using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
-using static Reductech.EDR.Connectors.Sql.Tests.SchemaHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests.Steps
 {

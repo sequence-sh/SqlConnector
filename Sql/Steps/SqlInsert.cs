@@ -190,7 +190,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
         }
     }
 
-    private Result<CommandData, IErrorBuilder> GetCommandData(
+    private static Result<CommandData, IErrorBuilder> GetCommandData(
         JsonSchema schema,
         string? postgresSchemaName,
         bool quoteFieldNames,
@@ -251,16 +251,13 @@ public sealed class SqlInsert : CompoundStep<Unit>
 
             var vr = schema.Validate(
                 entity.ToJsonElement(),
-                new ValidationOptions()
-                {
-                    RequireFormatValidation = true, OutputFormat = OutputFormat.Verbose
-                }
+                SchemaExtensions.DefaultValidationOptions
             );
 
             if (!vr.IsValid)
             {
                 errors.AddRange(
-                    GetErrorMessages(vr)
+                    vr.GetErrorMessages()
                         .Select(
                             x => ErrorCode.SchemaViolation.ToErrorBuilder(
                                 x.message,
@@ -331,25 +328,10 @@ public sealed class SqlInsert : CompoundStep<Unit>
                     "Array",
                     columnName
                 ),
-                EntityValue.Null     => (null, DbType.String),
+                EntityValue.Null => (null, DbType.String),
                 EntityValue.String s => (s.Value, DbType.String),
-                _                    => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(entityValue.GetValueOrThrow().ToString())
             };
-        }
-
-        static IEnumerable<(string message, string location)> GetErrorMessages(
-            ValidationResults validationResults)
-        {
-            if (!validationResults.IsValid)
-            {
-                if (validationResults.Message is not null)
-                    yield return (validationResults.Message,
-                                  validationResults.SchemaLocation.ToString());
-
-                foreach (var nestedResult in validationResults.NestedResults)
-                foreach (var errorMessage in GetErrorMessages(nestedResult))
-                    yield return errorMessage;
-            }
         }
     }
 }
