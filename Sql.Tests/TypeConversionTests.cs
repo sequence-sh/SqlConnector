@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
+using Json.Schema;
 using Microsoft.SqlServer.Management.SqlParser.Metadata;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.TestHarness;
 using Xunit.Abstractions;
+using static Reductech.EDR.Core.TestHarness.SchemaHelpers;
 
 namespace Reductech.EDR.Connectors.Sql.Tests
 {
@@ -17,40 +20,40 @@ public partial class TypeConversionTests
     {
         get
         {
-            yield return new GetDataTypeTest(SCLType.String,  DatabaseType.Postgres, "text");
-            yield return new GetDataTypeTest(SCLType.Integer, DatabaseType.Postgres, "integer");
+            yield return new GetDataTypeTest(AnyString, DatabaseType.Postgres, "text");
+            yield return new GetDataTypeTest(AnyInt,    DatabaseType.Postgres, "integer");
 
             yield return new GetDataTypeTest(
-                SCLType.Double,
+                AnyNumber,
                 DatabaseType.Postgres,
                 "double precision"
             );
 
-            yield return new GetDataTypeTest(SCLType.Enum,   DatabaseType.Postgres, "text");
-            yield return new GetDataTypeTest(SCLType.Bool,   DatabaseType.Postgres, "boolean");
-            yield return new GetDataTypeTest(SCLType.Date,   DatabaseType.Postgres, "date");
-            yield return new GetDataTypeTest(SCLType.Entity, DatabaseType.Postgres, null);
+            yield return new GetDataTypeTest(EnumProperty("a", "b"), DatabaseType.Postgres, "text");
+            yield return new GetDataTypeTest(AnyBool, DatabaseType.Postgres, "boolean");
+            yield return new GetDataTypeTest(AnyDateTime, DatabaseType.Postgres, "date");
+            yield return new GetDataTypeTest(AnyEntity, DatabaseType.Postgres, null);
 
             foreach (var dbType in new[] { DatabaseType.MsSql, DatabaseType.SQLite })
             {
-                yield return new GetDataTypeTest(SCLType.String,  dbType, "NTEXT");
-                yield return new GetDataTypeTest(SCLType.Integer, dbType, "INT");
-                yield return new GetDataTypeTest(SCLType.Double,  dbType, "FLOAT");
-                yield return new GetDataTypeTest(SCLType.Enum,    dbType, "NTEXT");
-                yield return new GetDataTypeTest(SCLType.Bool,    dbType, "BIT");
-                yield return new GetDataTypeTest(SCLType.Date,    dbType, "DATETIME2");
-                yield return new GetDataTypeTest(SCLType.Entity,  dbType, null);
+                yield return new GetDataTypeTest(AnyString,              dbType, "NTEXT");
+                yield return new GetDataTypeTest(AnyInt,                 dbType, "INT");
+                yield return new GetDataTypeTest(AnyNumber,              dbType, "FLOAT");
+                yield return new GetDataTypeTest(EnumProperty("a", "b"), dbType, "NTEXT");
+                yield return new GetDataTypeTest(AnyBool,                dbType, "BIT");
+                yield return new GetDataTypeTest(AnyDateTime,            dbType, "DATETIME2");
+                yield return new GetDataTypeTest(AnyEntity,              dbType, null);
             }
 
             foreach (var dbType in new[] { DatabaseType.MySql, DatabaseType.MariaDb })
             {
-                yield return new GetDataTypeTest(SCLType.String,  dbType, "TEXT");
-                yield return new GetDataTypeTest(SCLType.Integer, dbType, "INT");
-                yield return new GetDataTypeTest(SCLType.Double,  dbType, "FLOAT");
-                yield return new GetDataTypeTest(SCLType.Enum,    dbType, "TEXT");
-                yield return new GetDataTypeTest(SCLType.Bool,    dbType, "BIT");
-                yield return new GetDataTypeTest(SCLType.Date,    dbType, "DATETIME");
-                yield return new GetDataTypeTest(SCLType.Entity,  dbType, null);
+                yield return new GetDataTypeTest(AnyString,              dbType, "TEXT");
+                yield return new GetDataTypeTest(AnyInt,                 dbType, "INT");
+                yield return new GetDataTypeTest(AnyNumber,              dbType, "FLOAT");
+                yield return new GetDataTypeTest(EnumProperty("a", "b"), dbType, "TEXT");
+                yield return new GetDataTypeTest(AnyBool,                dbType, "BIT");
+                yield return new GetDataTypeTest(AnyDateTime,            dbType, "DATETIME");
+                yield return new GetDataTypeTest(AnyEntity,              dbType, null);
             }
         }
     }
@@ -164,14 +167,14 @@ public partial class TypeConversionTests
     }
 
     public record GetDataTypeTest(
-        SCLType SCLType,
+        JsonSchema Schema,
         DatabaseType DatabaseType,
         string? ExpectedOutput) : AutoTheory.ITestInstance
     {
         /// <inheritdoc />
         public void Run(ITestOutputHelper testOutputHelper)
         {
-            var actualType = TypeConversion.TryGetDataType(SCLType, DatabaseType);
+            var actualType = TypeConversion.TryGetDataType(Schema, DatabaseType);
 
             if (ExpectedOutput is null)
             {
@@ -184,8 +187,32 @@ public partial class TypeConversionTests
             }
         }
 
+        public string SchemaName
+        {
+            get
+            {
+                var type = Schema.Keywords!.OfType<TypeKeyword>()
+                    .Select(x => x.Type.ToString())
+                    .FirstOrDefault();
+
+                var format = Schema.Keywords!.OfType<FormatKeyword>()
+                    .Select(x => x.Value.Key)
+                    .FirstOrDefault();
+
+                var enumValues =
+                    string.Join(
+                        ",",
+                        Schema.Keywords!.OfType<EnumKeyword>()
+                            .SelectMany(x => x.Values)
+                    );
+
+                var data = $"{type}{format}{enumValues}";
+                return data;
+            }
+        }
+
         /// <inheritdoc />
-        public string Name => $"{SCLType}-{DatabaseType}";
+        public string Name => $"{SchemaName}-{DatabaseType}";
     }
 }
 

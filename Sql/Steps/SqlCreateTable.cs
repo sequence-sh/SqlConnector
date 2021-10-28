@@ -7,10 +7,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using Json.Schema;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
-using Reductech.EDR.Core.Entities;
-using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
 using Reductech.EDR.Core.Util;
@@ -45,8 +44,9 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         if (databaseConnectionMetadata.IsFailure)
             return databaseConnectionMetadata.ConvertFailure<Unit>();
 
-        var schema = EntityConversionHelpers.TryCreateFromEntity<Schema>(entity.Value)
-            .MapError(x => x.WithLocation(this));
+        var schema =
+            EntityConversionHelpers.TryCreateFromEntity<JsonSchema>(entity.Value)
+                .MapError(x => x.WithLocation(this));
 
         if (schema.IsFailure)
             return schema.ConvertFailure<Unit>();
@@ -111,85 +111,80 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         new SimpleStepFactory<SqlCreateTable, Unit>();
 
     internal static Result<string, IErrorBuilder> GetCommandText(
-        Schema schema,
+        JsonSchema schema,
         DatabaseType databaseType)
     {
         var sb     = new StringBuilder();
         var errors = new List<IErrorBuilder>();
 
-        if (schema.ExtraProperties == ExtraPropertyBehavior.Allow)
-            errors.Add(
-                ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder(
-                    $"Schema has {nameof(schema.ExtraProperties)} set to 'Allow'"
-                )
-            );
-
-        var quoteNames = ShouldQuoteNames(databaseType);
-
-        var tableName = Extensions.CheckSqlObjectName(schema.Name);
-
-        if (tableName.IsFailure)
-            errors.Add(tableName.Error);
+        if (schema.Keywords is null)
+            errors.Add(ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder($"Schema has no keywords"));
         else
-            sb.AppendLine($"CREATE TABLE {Extensions.MaybeQuote(tableName.Value, quoteNames)} (");
-
-        var index = 0;
-
-        foreach (var (column, schemaProperty) in schema.Properties)
         {
-            var dataType     = TypeConversion.TryGetDataType(schemaProperty.Type, databaseType);
-            var multiplicity = TryGetMultiplicityString(schemaProperty.Multiplicity);
+            var quoteNames = ShouldQuoteNames(databaseType);
 
-            if (dataType.IsFailure)
-                errors.Add(dataType.Error);
+            var title = schema.Keywords.OfType<TitleKeyword>()
+                .Select(x => x.Value)
+                .FirstOrDefault();
 
-            if (multiplicity.IsFailure)
-                errors.Add(multiplicity.Error);
-
-            if (dataType.IsSuccess && multiplicity.IsSuccess)
+            if (title is null)
+                errors.Add(
+                    ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder($"Schema has no keywords")
+                );
+            else
             {
-                if (index > 0)
-                    sb.Append(',');
+                var tableName = Extensions.CheckSqlObjectName(title);
 
-                var columnName = Extensions.CheckSqlObjectName(column);
-
-                if (columnName.IsFailure)
-                    errors.Add(columnName.Error);
+                if (tableName.IsFailure)
+                    errors.Add(tableName.Error);
                 else
                     sb.AppendLine(
-                        $"{Extensions.MaybeQuote(columnName.Value, quoteNames)} {dataType.Value} {multiplicity.Value}"
+                        $"CREATE TABLE {Extensions.MaybeQuote(tableName.Value, quoteNames)} ("
                     );
 
-                index++;
+                var index = 0;
+
+                var schemaProperties = schema.Keywords.OfType<PropertiesKeyword>()
+                    .SelectMany(x => x.Properties);
+
+                var requiredProperties = schema.Keywords.OfType<RequiredKeyword>()
+                    .SelectMany(x => x.Properties)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var (column, propertySchema) in schemaProperties)
+                {
+                    var dataType     = TypeConversion.TryGetDataType(propertySchema, databaseType);
+                    var multiplicity = requiredProperties.Contains(column) ? "NOT NULL" : "NULL";
+
+                    if (dataType.IsFailure)
+                        errors.Add(dataType.Error);
+
+                    if (dataType.IsSuccess)
+                    {
+                        if (index > 0)
+                            sb.Append(',');
+
+                        var columnName = Extensions.CheckSqlObjectName(column);
+
+                        if (columnName.IsFailure)
+                            errors.Add(columnName.Error);
+                        else
+                            sb.AppendLine(
+                                $"{Extensions.MaybeQuote(columnName.Value, quoteNames)} {dataType.Value} {multiplicity}"
+                            );
+
+                        index++;
+                    }
+                }
+
+                sb.AppendLine(")");
             }
         }
-
-        sb.AppendLine(")");
 
         if (errors.Any())
             return Result.Failure<string, IErrorBuilder>(ErrorBuilderList.Combine(errors));
 
         return sb.ToString();
-
-        static Result<string, IErrorBuilder> TryGetMultiplicityString(Multiplicity multiplicity)
-        {
-            return multiplicity switch
-            {
-                Multiplicity.Any => ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder(
-                    $"Sql does not support Multiplicity '{multiplicity}'"
-                ),
-                Multiplicity.AtLeastOne => ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder(
-                    $"Sql does not support Multiplicity '{multiplicity}'"
-                ),
-                Multiplicity.ExactlyOne => "NOT NULL",
-                Multiplicity.UpToOne    => "NULL",
-                _ => throw new ArgumentOutOfRangeException(
-                    nameof(multiplicity),
-                    multiplicity,
-                    null
-                )
-            };
-        }
 
         static bool ShouldQuoteNames(DatabaseType databaseType)
         {

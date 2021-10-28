@@ -7,11 +7,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using Json.Schema;
 using MoreLinq;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Entities;
-using Reductech.EDR.Core.Enums;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
 using Reductech.EDR.Core.Util;
@@ -30,11 +30,17 @@ public sealed class SqlInsert : CompoundStep<Unit>
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {
-        var entities = await
-            Entities.Run(stateMonad, cancellationToken);
+        var stuff = await stateMonad.RunStepsAsync(
+            Entities.WrapArray(),
+            Schema.WrapStep(StepMaps.ConvertToSchema(Schema)),
+            PostgresSchema.WrapNullable(StepMaps.String()),
+            cancellationToken
+        );
 
-        if (entities.IsFailure)
-            return entities.ConvertFailure<Unit>();
+        if (stuff.IsFailure)
+            return stuff.ConvertFailure<Unit>();
+
+        var (elements, schema, postgresSchemaString) = stuff.Value;
 
         var databaseConnectionMetadata = await DatabaseConnectionMetadata.GetOrCreate(
             Connection,
@@ -48,26 +54,17 @@ public sealed class SqlInsert : CompoundStep<Unit>
 
         string? postgresSchema = null;
 
-        if (PostgresSchema is not null)
+        if (postgresSchemaString.HasValue)
         {
-            var s = await PostgresSchema.Run(stateMonad, cancellationToken)
-                .Map(x => x.GetStringAsync())
-                .Bind(x => Extensions.CheckSqlObjectName(x).MapError(e => e.WithLocation(this)));
+            var psSchemaResult =
+                Extensions.CheckSqlObjectName(postgresSchemaString.GetValueOrThrow())
+                    .MapError(e => e.WithLocation(this));
 
-            if (s.IsFailure)
-                return s.ConvertFailure<Unit>();
+            if (psSchemaResult.IsFailure)
+                return psSchemaResult.ConvertFailure<Unit>();
 
-            postgresSchema = s.Value;
+            postgresSchema = psSchemaResult.Value;
         }
-
-        var schema = await Schema.Run(stateMonad, cancellationToken)
-            .Bind(
-                x => EntityConversionHelpers.TryCreateFromEntity<Schema>(x)
-                    .MapError(e => e.WithLocation(this))
-            );
-
-        if (schema.IsFailure)
-            return schema.ConvertFailure<Unit>();
 
         var factory = stateMonad.ExternalContext
             .TryGetContext<IDbConnectionFactory>(DbConnectionFactory.DbConnectionName);
@@ -75,18 +72,18 @@ public sealed class SqlInsert : CompoundStep<Unit>
         if (factory.IsFailure)
             return factory.MapError(x => x.WithLocation(this)).ConvertFailure<Unit>();
 
-        var elements = await entities.Value.GetElementsAsync(cancellationToken);
-
-        if (elements.IsFailure)
-            return elements.ConvertFailure<Unit>();
-
         IDbConnection conn = factory.Value.GetDatabaseConnection(databaseConnectionMetadata.Value);
 
         conn.Open();
         const int maxQueryParameters = 2099;
-        var       batchSize          = maxQueryParameters / schema.Value.Properties.Count;
 
-        var batches = elements.Value.Batch(batchSize);
+        var propertiesCount = schema.Keywords?.OfType<PropertiesKeyword>()
+            .SelectMany(x => x.Properties)
+            .Count() ?? 0;
+
+        var batchSize = maxQueryParameters / propertiesCount;
+
+        var batches = elements.Batch(batchSize);
 
         var shouldQuoteFieldNames =
             ShouldQuoteFieldNames(databaseConnectionMetadata.Value.DatabaseType);
@@ -94,11 +91,10 @@ public sealed class SqlInsert : CompoundStep<Unit>
         foreach (var batch in batches)
         {
             var commandDataResult = GetCommandData(
-                schema.Value,
+                schema,
                 postgresSchema,
                 shouldQuoteFieldNames,
-                batch,
-                stateMonad
+                batch
             );
 
             if (commandDataResult.IsFailure)
@@ -194,17 +190,24 @@ public sealed class SqlInsert : CompoundStep<Unit>
         }
     }
 
-    private Result<CommandData, IErrorBuilder> GetCommandData(
-        Schema schema,
+    private static Result<CommandData, IErrorBuilder> GetCommandData(
+        JsonSchema schema,
         string? postgresSchemaName,
         bool quoteFieldNames,
-        IEnumerable<Entity> entities,
-        IStateMonad stateMonad)
+        IEnumerable<Entity> entities)
     {
         var stringBuilder = new StringBuilder();
         var errors        = new List<IErrorBuilder>();
 
-        var tableName = Extensions.CheckSqlObjectName(schema.Name);
+        if (schema.Keywords is null)
+            return ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder("Schema keywords is null");
+
+        var schemaTitle = schema.Keywords.OfType<TitleKeyword>()
+            .Select(x => x.Value)
+            .DefaultIfEmpty("")
+            .First();
+
+        var tableName = Extensions.CheckSqlObjectName(schemaTitle);
 
         if (tableName.IsFailure)
             return tableName.ConvertFailure<CommandData>();
@@ -216,7 +219,8 @@ public sealed class SqlInsert : CompoundStep<Unit>
 
         var first = true;
 
-        foreach (var (name, _) in schema.Properties)
+        foreach (var (name, _) in schema.Keywords.OfType<PropertiesKeyword>()
+            .SelectMany(x => x.Properties))
         {
             if (!first)
                 stringBuilder.Append(", ");
@@ -245,25 +249,36 @@ public sealed class SqlInsert : CompoundStep<Unit>
                 stringBuilder.Append(", ");
             }
 
-            var entity2 = schema.ApplyToEntity(entity, this, stateMonad, ErrorBehavior.Fail);
+            var vr = schema.Validate(
+                entity.ToJsonElement(),
+                SchemaExtensions.DefaultValidationOptions
+            );
 
-            if (entity2.IsFailure)
+            if (!vr.IsValid)
             {
-                errors.Add(entity2.Error);
+                errors.AddRange(
+                    vr.GetErrorMessages()
+                        .Select(
+                            x => ErrorCode.SchemaViolation.ToErrorBuilder(
+                                x.message,
+                                x.location
+                            )
+                        )
+                );
+
                 continue;
             }
-
-            if (entity2.Value.HasNoValue) { continue; }
 
             stringBuilder.Append('(');
             first = true;
 
-            foreach (var (name, _) in schema.Properties)
+            foreach (var (name, _) in schema.Keywords.OfType<PropertiesKeyword>()
+                .SelectMany(x => x.Properties))
             {
                 if (!first)
                     stringBuilder.Append(", ");
 
-                var ev = entity2.Value.Value.TryGetValue(name);
+                var ev = entity.TryGetValue(name);
 
                 var val = GetValue(ev, name);
 
@@ -272,7 +287,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
                 if (val.IsFailure)
                     errors.Add(val.Error);
                 else
-                    parameters.Add((valueKey!, val.Value.o!, val.Value.dbType));
+                    parameters.Add((valueKey, val.Value.o!, val.Value.dbType));
 
                 stringBuilder.Append($"@{valueKey}");
                 first = false;
@@ -297,10 +312,10 @@ public sealed class SqlInsert : CompoundStep<Unit>
             if (entityValue.HasNoValue)
                 return (null, DbType.String);
 
-            return entityValue.Value switch
+            return entityValue.GetValueOrThrow() switch
             {
                 EntityValue.Boolean boolean => (boolean.Value, DbType.Boolean),
-                EntityValue.Date date       => (date.Value, DbType.DateTime2),
+                EntityValue.DateTime date   => (date.Value, DbType.DateTime2),
                 EntityValue.Double d        => (d.Value, DbType.Double),
                 EntityValue.EnumerationValue enumerationValue => (
                     enumerationValue.Value.ToString(), DbType.String),
@@ -313,9 +328,9 @@ public sealed class SqlInsert : CompoundStep<Unit>
                     "Array",
                     columnName
                 ),
-                EntityValue.Null     => (null, DbType.String),
+                EntityValue.Null => (null, DbType.String),
                 EntityValue.String s => (s.Value, DbType.String),
-                _                    => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(entityValue.GetValueOrThrow().ToString())
             };
         }
     }

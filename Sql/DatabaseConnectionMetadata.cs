@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Newtonsoft.Json;
 using Reductech.EDR.Core;
 using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
@@ -19,9 +19,9 @@ public class DatabaseConnectionMetadata : IEntityConvertible
     public static readonly VariableName DatabaseConnectionVariableName =
         new(DatabaseConnectionKey1);
 
-    [JsonProperty] public string ConnectionString { get; set; } = null!;
+    [JsonPropertyName("ConnectionString")] public string ConnectionString { get; set; } = null!;
 
-    [JsonProperty] public DatabaseType DatabaseType { get; set; }
+    [JsonPropertyName("DatabaseType")] public DatabaseType DatabaseType { get; set; }
 
     public static async Task<Result<DatabaseConnectionMetadata, IError>> TrySetConnection(
         Entity dbConnectionEntity,
@@ -50,6 +50,9 @@ public class DatabaseConnectionMetadata : IEntityConvertible
         return dbConnectionConversionResult.Value;
     }
 
+    /// <summary>
+    /// Get or create a SQL Connection
+    /// </summary>
     public static async Task<Result<DatabaseConnectionMetadata, IError>> GetOrCreate(
         IStep<Entity>? connection,
         IStateMonad stateMonad,
@@ -75,6 +78,9 @@ public class DatabaseConnectionMetadata : IEntityConvertible
         return connectionR;
     }
 
+    /// <summary>
+    /// Gets a connection from the State Monad
+    /// </summary>
     public static Result<DatabaseConnectionMetadata, IErrorBuilder>
         TryGetConnection(IStateMonad stateMonad)
     {
@@ -84,6 +90,7 @@ public class DatabaseConnectionMetadata : IEntityConvertible
         return vR;
     }
 
+    /// <inheritdoc />
     public override bool Equals(object? obj)
     {
         return obj is DatabaseConnectionMetadata metadata &&
@@ -91,6 +98,7 @@ public class DatabaseConnectionMetadata : IEntityConvertible
                DatabaseType == metadata.DatabaseType;
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         return HashCode.Combine(ConnectionString, DatabaseType);

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using CSharpFunctionalExtensions;
+using Json.Schema;
 using Microsoft.SqlServer.Management.SqlParser.Metadata;
 using MySqlConnector;
 using Reductech.EDR.Core;
@@ -143,79 +145,138 @@ internal static class TypeConversion
     }
 
     internal static Result<string, IErrorBuilder> TryGetDataType(
-        SCLType schemaPropertyType,
+        JsonSchema schema,
         DatabaseType databaseType)
     {
-        switch (databaseType)
+        if (schema.Keywords is null)
+            ErrorCode_Sql.CouldNotCreateTable.ToErrorBuilder("Schema has no keywords");
+
+        var type = schema.Keywords!.OfType<TypeKeyword>()
+            .Select(x => x.Type)
+            .DefaultIfEmpty(SchemaValueType.Object)
+            .First();
+
+        switch (type)
         {
-            case DatabaseType.Postgres:
+            case SchemaValueType.Object:
             {
-                return schemaPropertyType switch
-                {
-                    SCLType.String  => "text",
-                    SCLType.Integer => "integer",
-                    SCLType.Double  => "double precision",
-                    SCLType.Enum    => "text",
-                    SCLType.Bool    => "boolean",
-                    SCLType.Date    => "date",
-                    SCLType.Entity => ErrorCode_Sql.CouldNotCreateTable
-                        .ToErrorBuilder("Sql does not support nested entities"),
-                    _ => throw new ArgumentOutOfRangeException(
-                        nameof(schemaPropertyType),
-                        schemaPropertyType,
-                        null
-                    )
-                };
+                return ErrorCode_Sql.CouldNotCreateTable
+                    .ToErrorBuilder("Sql does not support nested entities");
             }
-
-            case DatabaseType.SQLite:
-            case DatabaseType.MsSql:
+            case SchemaValueType.Array:
             {
-                Result<SqlDataType, IErrorBuilder> sqlDbType = schemaPropertyType switch
-                {
-                    SCLType.String  => SqlDataType.NText,
-                    SCLType.Integer => SqlDataType.Int,
-                    SCLType.Double  => SqlDataType.Float,
-                    SCLType.Enum    => SqlDataType.NText,
-                    SCLType.Bool    => SqlDataType.Bit,
-                    SCLType.Date    => SqlDataType.DateTime2,
-                    SCLType.Entity => ErrorCode_Sql.CouldNotCreateTable
-                        .ToErrorBuilder("Sql does not support nested entities"),
-                    _ => throw new ArgumentOutOfRangeException(
-                        nameof(schemaPropertyType),
-                        schemaPropertyType,
-                        null
-                    )
-                };
-
-                return sqlDbType.Map(x => x.ToString().ToUpperInvariant());
+                return ErrorCode_Sql.CouldNotCreateTable
+                    .ToErrorBuilder("Sql does not support nested lists");
             }
-            case DatabaseType.MySql:
-            case DatabaseType.MariaDb:
+            case SchemaValueType.Boolean:
             {
-                Result<MySqlDbType, IErrorBuilder> sqlDbType = schemaPropertyType switch
+                switch (databaseType)
                 {
-                    SCLType.String  => MySqlDbType.Text,
-                    SCLType.Integer => MySqlDbType.Int32,
-                    SCLType.Double  => MySqlDbType.Float,
-                    SCLType.Enum    => MySqlDbType.Text,
-                    SCLType.Bool    => MySqlDbType.Bit,
-                    SCLType.Date    => MySqlDbType.DateTime,
-                    SCLType.Entity => ErrorCode_Sql.CouldNotCreateTable
-                        .ToErrorBuilder("Sql does not support nested entities"),
-                    _ => throw new ArgumentOutOfRangeException(
-                        nameof(schemaPropertyType),
-                        schemaPropertyType,
-                        null
-                    )
-                };
+                    case DatabaseType.Postgres: return "boolean";
 
-                return sqlDbType.Map(
-                    x => x == MySqlDbType.Int32 ? "INT" : x.ToString().ToUpperInvariant()
-                );
+                    case DatabaseType.SQLite:
+                    case DatabaseType.MsSql:
+                        return SqlDataType.Bit.ToString().ToUpperInvariant();
+
+                    case DatabaseType.MySql:
+                    case DatabaseType.MariaDb:
+                        return MySqlDbType.Bit.ToString().ToUpperInvariant();
+                    default:
+                        throw new ArgumentOutOfRangeException(
+                            nameof(databaseType),
+                            databaseType,
+                            null
+                        );
+                }
             }
-            default:
-                throw new ArgumentOutOfRangeException(nameof(databaseType), databaseType, null);
+            case SchemaValueType.String:
+            {
+                var format = schema.Keywords!.OfType<FormatKeyword>()
+                    .Select(x => x.Value.Key)
+                    .DefaultIfEmpty("")
+                    .First();
+
+                if (format.Equals("date-time", StringComparison.OrdinalIgnoreCase))
+                {
+                    return databaseType switch
+                    {
+                        DatabaseType.Postgres => "date",
+                        DatabaseType.SQLite => SqlDataType.DateTime2.ToString().ToUpperInvariant(),
+                        DatabaseType.MsSql => SqlDataType.DateTime2.ToString().ToUpperInvariant(),
+                        DatabaseType.MySql => MySqlDbType.DateTime.ToString().ToUpperInvariant(),
+                        DatabaseType.MariaDb => MySqlDbType.DateTime.ToString().ToUpperInvariant(),
+                        _ => throw new ArgumentOutOfRangeException(
+                            nameof(databaseType),
+                            databaseType,
+                            null
+                        )
+                    };
+                }
+                else
+                {
+                    return databaseType switch
+                    {
+                        DatabaseType.Postgres => "text",
+                        DatabaseType.SQLite   => SqlDataType.NText.ToString().ToUpperInvariant(),
+                        DatabaseType.MsSql    => SqlDataType.NText.ToString().ToUpperInvariant(),
+                        DatabaseType.MySql    => MySqlDbType.Text.ToString().ToUpperInvariant(),
+                        DatabaseType.MariaDb  => MySqlDbType.Text.ToString().ToUpperInvariant(),
+                        _ => throw new ArgumentOutOfRangeException(
+                            nameof(databaseType),
+                            databaseType,
+                            null
+                        )
+                    };
+                }
+            }
+            case SchemaValueType.Number:
+            {
+                switch (databaseType)
+                {
+                    case DatabaseType.Postgres: return "double precision";
+
+                    case DatabaseType.SQLite:
+                    case DatabaseType.MsSql:
+                        return SqlDataType.Float.ToString().ToUpperInvariant();
+
+                    case DatabaseType.MySql:
+                    case DatabaseType.MariaDb:
+                        return MySqlDbType.Float.ToString().ToUpperInvariant();
+                    default:
+                        throw new ArgumentOutOfRangeException(
+                            nameof(databaseType),
+                            databaseType,
+                            null
+                        );
+                }
+            }
+            case SchemaValueType.Integer:
+            {
+                switch (databaseType)
+                {
+                    case DatabaseType.Postgres: return "integer";
+
+                    case DatabaseType.SQLite:
+                    case DatabaseType.MsSql:
+                        return SqlDataType.Int.ToString().ToUpperInvariant();
+
+                    case DatabaseType.MySql:
+                    case DatabaseType.MariaDb:
+                        return "INT";
+                    default:
+                        throw new ArgumentOutOfRangeException(
+                            nameof(databaseType),
+                            databaseType,
+                            null
+                        );
+                }
+            }
+            case SchemaValueType.Null:
+            {
+                return ErrorCode_Sql.CouldNotCreateTable
+                    .ToErrorBuilder("Sql does not support null data type");
+            }
+            default: throw new ArgumentOutOfRangeException();
         }
     }
 }
