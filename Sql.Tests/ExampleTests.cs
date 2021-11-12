@@ -43,19 +43,21 @@ public partial class ExampleTests
 
         var assembly = typeof(CreateMsSQLConnectionString).Assembly;
 
-        var sfs = StepFactoryStore.CreateFromAssemblies(assembly);
-
-        var context = new ExternalContext(
+        var externalContext = new ExternalContext(
             ExternalContext.Default.ExternalProcessRunner,
+            DefaultRestClientFactory.Instance,
             ExternalContext.Default.Console,
             (DbConnectionFactory.DbConnectionName, DbConnectionFactory.Instance)
         );
 
+        var sfs = StepFactoryStore.TryCreateFromAssemblies(externalContext, assembly);
+
+        sfs.ShouldBeSuccessful();
+
         var runner = new SCLRunner(
             logger,
-            sfs,
-            context,
-            DefaultRestClientFactory.Instance
+            sfs.Value,
+            externalContext
         );
 
         var r = await runner.RunSequenceFromTextAsync(
@@ -184,6 +186,7 @@ public partial class ExampleTests
 
         var context = new ExternalContext(
             ExternalContext.Default.ExternalProcessRunner,
+            DefaultRestClientFactory.Instance,
             ExternalContext.Default.Console,
             (DbConnectionFactory.DbConnectionName, DbConnectionFactory.Instance)
         );
@@ -192,7 +195,6 @@ public partial class ExampleTests
             TestOutputHelper.BuildLogger(),
             StepFactoryStore.Create(),
             context,
-            DefaultRestClientFactory.Instance,
             new Dictionary<string, object>()
         );
 

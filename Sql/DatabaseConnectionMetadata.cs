@@ -41,7 +41,8 @@ public class DatabaseConnectionMetadata : IEntityConvertible
             DatabaseConnectionVariableName,
             dbConnectionEntity,
             true,
-            step
+            step,
+            CancellationToken.None
         );
 
         if (result.IsFailure)
