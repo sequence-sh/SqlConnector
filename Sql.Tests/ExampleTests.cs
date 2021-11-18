@@ -160,7 +160,7 @@ public partial class ExampleTests
                 {
                     Value = new EntityGetValue<int>()
                     {
-                        Entity = new ElementAtIndex<Entity>()
+                        Entity = new ArrayElementAtIndex<Entity>()
                         {
                             Array = new SqlQuery()
                             {
