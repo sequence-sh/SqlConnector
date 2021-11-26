@@ -1,3 +1,7 @@
+# v0.12.0 (2021-11-26)
+
+Maintenance release - dependency updates only.
+
 # v0.11.0 (2021-09-03)
 
 Dependency updates only
@@ -93,3 +97,4 @@ This connector supports:
 ### Maintenance
 
 - Update version of Core to support enhanced logging #5
+
