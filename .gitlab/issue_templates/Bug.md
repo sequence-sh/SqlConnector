@@ -3,6 +3,8 @@
 /label ~"priority::3"
 /label ~"wf::backlog"
 /label ~"area::connectors"
+/label ~edr
+/label ~sql
 
 ## Summary
 
