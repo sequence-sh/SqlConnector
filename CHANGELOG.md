@@ -1,3 +1,14 @@
+# v0.12.1 (2021-12-01)
+
+Bug fix release.
+
+## Issues Closed in this Release
+
+### Bug Fixes
+
+- Explicity reference System.Text.Json and exclude assets
+ #33
+
 # v0.12.0 (2021-11-26)
 
 Maintenance release - dependency updates only.
