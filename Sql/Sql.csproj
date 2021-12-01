@@ -8,7 +8,7 @@
     <AssemblyName>Reductech.EDR.Connectors.Sql</AssemblyName>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <Nullable>enable</Nullable>
-    <Version>0.12.0$(VersionSuffix)</Version>
+    <Version>0.12.1$(VersionSuffix)</Version>
   </PropertyGroup>
 
   <PropertyGroup>
