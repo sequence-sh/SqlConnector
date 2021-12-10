@@ -1,22 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
 using FluentAssertions;
 using Json.Schema;
 using Reductech.EDR.Connectors.Sql.Steps;
 using Reductech.EDR.Core.Entities;
-using Reductech.EDR.Core.Internal.Errors;
-using Reductech.EDR.Core.TestHarness;
-using Reductech.EDR.Core.Util;
 using Xunit.Abstractions;
-using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 using static Reductech.EDR.Core.TestHarness.SchemaHelpers;
 using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests.Steps
-{
+namespace Reductech.EDR.Connectors.Sql.Tests.Steps;
 
 public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
 {
@@ -268,6 +261,4 @@ MyColumn TEXT NOT NULL
             }
         }
     }
-}
-
 }

@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using Reductech.EDR.Connectors.Sql.Steps;
-using Reductech.EDR.Core;
-using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Steps;
-using Reductech.EDR.Core.TestHarness;
-using Reductech.EDR.Core.Util;
-using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests.Steps
-{
+namespace Reductech.EDR.Connectors.Sql.Tests.Steps;
 
 public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
 {
@@ -107,6 +99,4 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
                 yield return errorCase;
         }
     }
-}
-
 }

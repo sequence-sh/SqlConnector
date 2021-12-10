@@ -1,12 +1,6 @@
-﻿using System.Collections.Generic;
-using Reductech.EDR.Connectors.Sql.Steps;
-using Reductech.EDR.Core;
-using Reductech.EDR.Core.TestHarness;
-using Reductech.EDR.Core.Util;
-using static Reductech.EDR.Core.TestHarness.StaticHelpers;
+﻿using Reductech.EDR.Connectors.Sql.Steps;
 
-namespace Reductech.EDR.Connectors.Sql.Tests.Steps
-{
+namespace Reductech.EDR.Connectors.Sql.Tests.Steps;
 
 public partial class OpenConnectionTests : StepTestBase<OpenConnection, Unit>
 {
@@ -32,6 +26,4 @@ public partial class OpenConnectionTests : StepTestBase<OpenConnection, Unit>
             );
         }
     }
-}
-
 }

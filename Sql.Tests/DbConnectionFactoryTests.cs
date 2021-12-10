@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SQLite;
+﻿using System.Data.SQLite;
 using FluentAssertions;
 using Microsoft.Data.SqlClient;
 using MySqlConnector;
 using Npgsql;
 using Xunit.Abstractions;
 
-namespace Reductech.EDR.Connectors.Sql.Tests
-{
+namespace Reductech.EDR.Connectors.Sql.Tests;
 
 [AutoTheory.UseTestOutputHelper]
 public partial class DbConnectionFactoryTests
@@ -72,6 +69,4 @@ public partial class DbConnectionFactoryTests
         /// <inheritdoc />
         public string Name => DatabaseType.ToString();
     }
-}
-
 }

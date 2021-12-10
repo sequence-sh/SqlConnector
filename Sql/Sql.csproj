@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RootNamespace>Reductech.EDR.Connectors.Sql</RootNamespace>
@@ -34,7 +34,7 @@
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="MySqlConnector" Version="1.3.11" />
     <PackageReference Include="Npgsql" Version="5.0.7" />
-    <PackageReference Include="Reductech.EDR.Core" Version="0.13.0-a.main.2112061728">
+    <PackageReference Include="Reductech.EDR.Core" Version="0.13.0-a.main.2112101135">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115" />

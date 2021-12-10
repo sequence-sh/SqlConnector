@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
 using Reductech.EDR.Core.Internal.Errors;
 
-namespace Reductech.EDR.Connectors.Sql
-{
+namespace Reductech.EDR.Connectors.Sql;
 
 public static class Extensions
 {
@@ -110,6 +104,4 @@ public static class Extensions
     {
         return quote ? $"\"{name}\"" : name;
     }
-}
-
 }

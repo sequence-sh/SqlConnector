@@ -1,17 +1,8 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.Data;
-using System.Threading;
-using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
-using Reductech.EDR.Core;
-using Reductech.EDR.Core.Attributes;
-using Reductech.EDR.Core.Internal;
+﻿using System.Data;
 using Reductech.EDR.Core.Internal.Errors;
 using Entity = Reductech.EDR.Core.Entity;
 
-namespace Reductech.EDR.Connectors.Sql.Steps
-{
+namespace Reductech.EDR.Connectors.Sql.Steps;
 
 /// <summary>
 /// Executes a SQL query and returns the result as an entity stream.
@@ -91,6 +82,4 @@ public sealed class SqlQuery : CompoundStep<Array<Entity>>
 
     /// <inheritdoc />
     public override IStepFactory StepFactory => new SimpleStepFactory<SqlQuery, Array<Entity>>();
-}
-
 }

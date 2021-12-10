@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using FluentAssertions;
 using Json.Schema;
 using Microsoft.SqlServer.Management.SqlParser.Metadata;
-using Reductech.EDR.Core;
-using Reductech.EDR.Core.TestHarness;
 using Xunit.Abstractions;
 using static Reductech.EDR.Core.TestHarness.SchemaHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests
-{
+namespace Reductech.EDR.Connectors.Sql.Tests;
 
 [AutoTheory.UseTestOutputHelper]
 public partial class TypeConversionTests
@@ -214,6 +209,4 @@ public partial class TypeConversionTests
         /// <inheritdoc />
         public string Name => $"{SchemaName}-{DatabaseType}";
     }
-}
-
 }

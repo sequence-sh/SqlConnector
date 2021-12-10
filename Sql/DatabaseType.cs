@@ -1,5 +1,4 @@
-﻿namespace Reductech.EDR.Connectors.Sql
-{
+﻿namespace Reductech.EDR.Connectors.Sql;
 
 /// <summary>
 /// The type of database to connect to
@@ -30,6 +29,4 @@ public enum DatabaseType
     /// MariaDb
     /// </summary>
     MariaDb
-}
-
 }

@@ -1,12 +1,6 @@
-﻿using System.Collections.Generic;
-using Reductech.EDR.Connectors.Sql.Steps;
-using Reductech.EDR.Core;
-using Reductech.EDR.Core.Internal.Errors;
-using Reductech.EDR.Core.TestHarness;
-using static Reductech.EDR.Core.TestHarness.StaticHelpers;
+﻿using Reductech.EDR.Connectors.Sql.Steps;
 
-namespace Reductech.EDR.Connectors.Sql.Tests.Steps
-{
+namespace Reductech.EDR.Connectors.Sql.Tests.Steps;
 
 public partial class
     CreateMsSQLConnectionStringTests : StepTestBase<CreateMsSQLConnectionString, Entity>
@@ -86,6 +80,4 @@ public partial class
                 yield return errorCase;
         }
     }
-}
-
 }

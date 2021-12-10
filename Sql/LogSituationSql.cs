@@ -2,8 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Reductech.EDR.Core.Internal.Logging;
 
-namespace Reductech.EDR.Connectors.Sql
-{
+namespace Reductech.EDR.Connectors.Sql;
 
 /// <summary>
 /// Log situations for the SQL Connector.
@@ -29,6 +28,4 @@ public sealed record LogSituationSql : LogSituationBase
         nameof(CommandExecuted),
         LogLevel.Information
     );
-}
-
 }

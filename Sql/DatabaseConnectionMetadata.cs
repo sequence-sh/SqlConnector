@@ -1,15 +1,8 @@
-﻿using System;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
-using Reductech.EDR.Core;
-using Reductech.EDR.Core.Internal;
+﻿using System.Text.Json.Serialization;
 using Reductech.EDR.Core.Internal.Errors;
 using Entity = Reductech.EDR.Core.Entity;
 
-namespace Reductech.EDR.Connectors.Sql
-{
+namespace Reductech.EDR.Connectors.Sql;
 
 [Serializable]
 public class DatabaseConnectionMetadata : IEntityConvertible
@@ -104,6 +97,4 @@ public class DatabaseConnectionMetadata : IEntityConvertible
     {
         return HashCode.Combine(ConnectionString, DatabaseType);
     }
-}
-
 }
