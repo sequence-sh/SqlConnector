@@ -1,25 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Json.More;
 using Json.Schema;
 using Microsoft.Extensions.Logging;
 using Reductech.EDR.Connectors.Sql.Steps;
-using Reductech.EDR.Core;
 using Reductech.EDR.Core.Abstractions;
-using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Serialization;
 using Reductech.EDR.Core.Steps;
-using Reductech.EDR.Core.TestHarness;
-using Reductech.EDR.Core.Util;
 using Xunit;
 using Xunit.Abstractions;
-using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests
-{
+namespace Reductech.EDR.Connectors.Sql.Tests;
 
 /// <summary>
 /// These are not really tests but ways to quickly and easily run steps
@@ -202,6 +194,4 @@ public partial class ExampleTests
 
         r.ShouldBeSuccessful();
     }
-}
-
 }

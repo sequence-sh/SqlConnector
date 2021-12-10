@@ -1,9 +1,4 @@
-﻿using Reductech.EDR.Core;
-using Reductech.EDR.Core.Internal;
-using Reductech.EDR.Core.TestHarness;
-
-namespace Reductech.EDR.Connectors.Sql.Tests
-{
+﻿namespace Reductech.EDR.Connectors.Sql.Tests;
 
 public static class StaticHelpers
 {
@@ -34,6 +29,4 @@ public static class StaticHelpers
 
         return @case;
     }
-}
-
 }

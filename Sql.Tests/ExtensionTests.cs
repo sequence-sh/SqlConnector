@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using FluentAssertions;
-using Reductech.EDR.Core.TestHarness;
+﻿using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Reductech.EDR.Connectors.Sql.Tests
-{
+namespace Reductech.EDR.Connectors.Sql.Tests;
 
 [AutoTheory.UseTestOutputHelper]
 public partial class ExtensionTests
@@ -48,6 +45,4 @@ public partial class ExtensionTests
         /// <inheritdoc />
         public string Name => TableName;
     }
-}
-
 }

@@ -1,20 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Json.More;
 using Json.Schema;
 using Reductech.EDR.Connectors.Sql.Steps;
-using Reductech.EDR.Core;
 using Reductech.EDR.Core.Entities;
-using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Steps;
-using Reductech.EDR.Core.TestHarness;
-using Reductech.EDR.Core.Util;
-using static Reductech.EDR.Core.TestHarness.StaticHelpers;
 using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests.Steps
-{
+namespace Reductech.EDR.Connectors.Sql.Tests.Steps;
 
 public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
 {
@@ -146,6 +138,4 @@ public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
                 );
         }
     }
-}
-
 }

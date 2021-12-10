@@ -1,12 +1,10 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using System.Data.SQLite;
 using Microsoft.Data.SqlClient;
 using MySqlConnector;
 using Npgsql;
 
-namespace Reductech.EDR.Connectors.Sql
-{
+namespace Reductech.EDR.Connectors.Sql;
 
 /// <inheritdoc />
 public class DbConnectionFactory : IDbConnectionFactory
@@ -42,6 +40,4 @@ public class DbConnectionFactory : IDbConnectionFactory
             )
         };
     }
-}
-
 }

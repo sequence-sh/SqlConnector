@@ -1,23 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Data;
+﻿using System.Data;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
 using Json.More;
 using Json.Schema;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
-using Reductech.EDR.Core;
-using Reductech.EDR.Core.Attributes;
-using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
 using Entity = Reductech.EDR.Core.Entity;
 
-namespace Reductech.EDR.Connectors.Sql.Steps
-{
+namespace Reductech.EDR.Connectors.Sql.Steps;
 
 /// <summary>
 /// Creates a Schema entity from a SQL table
@@ -364,6 +354,4 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
 
         return mainBuilder.Build();
     }
-}
-
 }

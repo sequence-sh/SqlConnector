@@ -1,18 +1,8 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.Data;
-using System.Threading;
-using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
-using Reductech.EDR.Core;
-using Reductech.EDR.Core.Attributes;
-using Reductech.EDR.Core.Internal;
+﻿using System.Data;
 using Reductech.EDR.Core.Internal.Errors;
-using Reductech.EDR.Core.Util;
 using Entity = Reductech.EDR.Core.Entity;
 
-namespace Reductech.EDR.Connectors.Sql.Steps
-{
+namespace Reductech.EDR.Connectors.Sql.Steps;
 
 /// <summary>
 /// Executes a Sql command
@@ -89,6 +79,4 @@ public sealed class SqlCommand : CompoundStep<Unit>
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } = new SimpleStepFactory<SqlCommand, Unit>();
-}
-
 }

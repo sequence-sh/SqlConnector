@@ -1,9 +1,7 @@
 ﻿using System.Reflection;
 using Reductech.EDR.Connectors.Sql.Steps;
-using Reductech.EDR.Core.TestHarness;
 
-namespace Reductech.EDR.Connectors.Sql.Tests
-{
+namespace Reductech.EDR.Connectors.Sql.Tests;
 
 /// <summary>
 /// Makes sure all steps have a test class
@@ -15,6 +13,4 @@ public class MetaTests : MetaTestsBase
 
     /// <inheritdoc />
     public override Assembly TestAssembly => typeof(MetaTests).Assembly;
-}
-
 }

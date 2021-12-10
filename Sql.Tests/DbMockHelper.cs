@@ -1,9 +1,7 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using Moq;
 
-namespace Reductech.EDR.Connectors.Sql.Tests
-{
+namespace Reductech.EDR.Connectors.Sql.Tests;
 
 public static class DbMockHelper
 {
@@ -161,6 +159,4 @@ public static class DbMockHelper
 
         return factory;
     }
-}
-
 }

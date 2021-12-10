@@ -1,15 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Threading;
-using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
-using Reductech.EDR.Core;
-using Reductech.EDR.Core.Attributes;
-using Reductech.EDR.Core.Internal;
-using Reductech.EDR.Core.Internal.Errors;
+﻿using Reductech.EDR.Core.Internal.Errors;
 using Entity = Reductech.EDR.Core.Entity;
 
-namespace Reductech.EDR.Connectors.Sql.Steps
-{
+namespace Reductech.EDR.Connectors.Sql.Steps;
 
 /// <summary>
 /// Create a database connection string for a MySQL database.
@@ -103,6 +95,4 @@ public sealed class CreateMySQLConnectionString : CompoundStep<Entity>
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } =
         new SimpleStepFactory<CreateMySQLConnectionString, Entity>();
-}
-
 }

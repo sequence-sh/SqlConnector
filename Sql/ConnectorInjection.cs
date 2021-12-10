@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using CSharpFunctionalExtensions;
-using Reductech.EDR.Core.Connectors;
+﻿using Reductech.EDR.Core.Connectors;
 using Reductech.EDR.Core.Internal.Errors;
 
-namespace Reductech.EDR.Connectors.Sql
-{
+namespace Reductech.EDR.Connectors.Sql;
 
 /// <inheritdoc />
 public sealed class ConnectorInjection : IConnectorInjection
@@ -20,6 +17,4 @@ public sealed class ConnectorInjection : IConnectorInjection
 
         return list;
     }
-}
-
 }

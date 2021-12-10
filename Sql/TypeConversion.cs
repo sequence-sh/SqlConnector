@@ -1,14 +1,10 @@
-﻿using System;
-using System.Linq;
-using CSharpFunctionalExtensions;
+﻿using System.Linq;
 using Json.Schema;
 using Microsoft.SqlServer.Management.SqlParser.Metadata;
 using MySqlConnector;
-using Reductech.EDR.Core;
 using Reductech.EDR.Core.Internal.Errors;
 
-namespace Reductech.EDR.Connectors.Sql
-{
+namespace Reductech.EDR.Connectors.Sql;
 
 internal static class TypeConversion
 {
@@ -279,6 +275,4 @@ internal static class TypeConversion
             default: throw new ArgumentOutOfRangeException();
         }
     }
-}
-
 }

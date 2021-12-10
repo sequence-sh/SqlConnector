@@ -1,24 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Data;
+﻿using System.Data;
 using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
 using Json.Schema;
 using MoreLinq;
-using Reductech.EDR.Core;
-using Reductech.EDR.Core.Attributes;
 using Reductech.EDR.Core.Entities;
-using Reductech.EDR.Core.Internal;
 using Reductech.EDR.Core.Internal.Errors;
-using Reductech.EDR.Core.Util;
 using Entity = Reductech.EDR.Core.Entity;
 
-namespace Reductech.EDR.Connectors.Sql.Steps
-{
+namespace Reductech.EDR.Connectors.Sql.Steps;
 
 /// <summary>
 /// Inserts data into a SQL table
@@ -220,7 +209,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
         var first = true;
 
         foreach (var (name, _) in schema.Keywords.OfType<PropertiesKeyword>()
-            .SelectMany(x => x.Properties))
+                     .SelectMany(x => x.Properties))
         {
             if (!first)
                 stringBuilder.Append(", ");
@@ -273,7 +262,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
             first = true;
 
             foreach (var (name, _) in schema.Keywords.OfType<PropertiesKeyword>()
-                .SelectMany(x => x.Properties))
+                         .SelectMany(x => x.Properties))
             {
                 if (!first)
                     stringBuilder.Append(", ");
@@ -334,6 +323,4 @@ public sealed class SqlInsert : CompoundStep<Unit>
             };
         }
     }
-}
-
 }

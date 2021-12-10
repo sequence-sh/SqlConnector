@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
 using Reductech.EDR.Core.Internal.Errors;
 
-namespace Reductech.EDR.Connectors.Sql
-{
+namespace Reductech.EDR.Connectors.Sql;
 
 /// <summary>
 /// Identifying code for an error message in Sql connector
@@ -49,6 +48,4 @@ public sealed record ErrorCode_Sql : ErrorCodeBase
     /// Invalid Name for a SQL object: '{0}'
     /// </summary>
     public static readonly ErrorCode_Sql InvalidName = new(nameof(InvalidName));
-}
-
 }
