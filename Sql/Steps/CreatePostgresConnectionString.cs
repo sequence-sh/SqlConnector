@@ -41,7 +41,7 @@ public sealed class CreatePostgresConnectionString : CompoundStep<Entity>
             return password.ConvertFailure<Entity>();
 
         var connectionString =
-            $"User ID={userId.Value};Password={password.Value};Host={host.Value};Port={port.Value};Database={database.Value};";
+            $"User ID={userId.Value};Password={password.Value};Host={host.Value};Port={port.Value.Value};Database={database.Value};";
 
         var databaseConnection = new DatabaseConnectionMetadata()
         {
@@ -65,7 +65,7 @@ public sealed class CreatePostgresConnectionString : CompoundStep<Entity>
     /// </summary>
     [StepProperty(2)]
     [Required]
-    public IStep<int> Port { get; set; } = null!;
+    public IStep<SCLInt> Port { get; set; } = null!;
 
     /// <summary>
     /// The database to run the query against

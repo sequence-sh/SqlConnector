@@ -148,9 +148,9 @@ public partial class ExampleTests
                     Schema   = Constant(Entity.Create(schema.ToJsonDocument().RootElement)),
                     Entities = Array(CreateEntityArray(numberOfEntities)),
                 },
-                new SetVariable<int>()
+                new SetVariable<SCLInt>()
                 {
-                    Value = new EntityGetValue<int>()
+                    Value = new EntityGetValue<SCLInt>()
                     {
                         Entity = new ArrayElementAtIndex<Entity>()
                         {
@@ -164,15 +164,15 @@ public partial class ExampleTests
                     },
                     Variable = new VariableName("ActualCount")
                 },
-                new AssertEqual<int>()
+                new AssertEqual<SCLInt>()
                 {
-                    Left = GetVariable<int>("ActualCount"), Right = Constant(3)
+                    Left = GetVariable<SCLInt>("ActualCount"), Right = Constant(3)
                 }
             },
             FinalStep = new DoNothing()
         };
 
-        var scl = step.Serialize();
+        var scl = step.Serialize(SerializeOptions.Serialize);
 
         TestOutputHelper.WriteLine(scl);
 

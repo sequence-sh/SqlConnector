@@ -295,32 +295,40 @@ public sealed class SqlInsert : CompoundStep<Unit>
         return new CommandData(stringBuilder.ToString(), parameters);
 
         static Result<(object? o, DbType dbType), IErrorBuilder> GetValue(
-            Maybe<EntityValue> entityValue,
+            Maybe<ISCLObject> entityValue,
             string columnName)
         {
             if (entityValue.HasNoValue)
                 return (null, DbType.String);
 
-            return entityValue.GetValueOrThrow() switch
+            return GetValue( entityValue.GetValueOrThrow(), columnName );
+
+            static Result<(object? o, DbType dbType), IErrorBuilder>  GetValue(ISCLObject sclObject, string columnName)
             {
-                EntityValue.Boolean boolean => (boolean.Value, DbType.Boolean),
-                EntityValue.DateTime date   => (date.Value, DbType.DateTime2),
-                EntityValue.Double d        => (d.Value, DbType.Double),
-                EntityValue.EnumerationValue enumerationValue => (
-                    enumerationValue.Value.ToString(), DbType.String),
-                EntityValue.Integer integer => (integer.Value, DbType.Int32),
-                EntityValue.NestedEntity => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
+                return sclObject switch
+            {
+                SCLBool boolean => (boolean.Value, DbType.Boolean),
+                SCLDateTime date   => (date.Value, DbType.DateTime2),
+                SCLInt integer => (integer.Value, DbType.Int32),
+                SCLDouble d        => (d.Value, DbType.Double),
+                ISCLEnum enumerationValue => (
+                    enumerationValue.EnumValue, DbType.String),
+                
+                Entity => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
                     nameof(Entity),
                     columnName
                 ),
-                EntityValue.NestedList => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
+                IArray => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
                     "Array",
                     columnName
                 ),
-                EntityValue.Null => (null, DbType.String),
-                EntityValue.String s => (s.Value, DbType.String),
-                _ => throw new ArgumentOutOfRangeException(entityValue.GetValueOrThrow().ToString())
+                SCLNull => (null, DbType.String),
+                Unit => (null, DbType.String),
+                StringStream s => (s.GetString(), DbType.String),
+                ISCLOneOf oneOf => GetValue( oneOf.Value, columnName),
+                _ => throw new ArgumentOutOfRangeException(sclObject.Serialize(SerializeOptions.Serialize))
             };
+            }
         }
     }
 }

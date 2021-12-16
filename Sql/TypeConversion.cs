@@ -8,7 +8,7 @@ namespace Reductech.EDR.Connectors.Sql;
 
 internal static class TypeConversion
 {
-    internal static Result<SCLType, IErrorBuilder> TryConvertDataType(
+    internal static Result<TypeReference.Actual, IErrorBuilder> TryConvertDataType(
         string dataTypeString,
         string column,
         DatabaseType databaseType)
@@ -33,35 +33,35 @@ internal static class TypeConversion
         }
     }
 
-    internal static Result<SCLType, IErrorBuilder> TryConvertPostgresDataType(
+    internal static Result<TypeReference.Actual, IErrorBuilder> TryConvertPostgresDataType(
         string dataType,
         string column)
     {
         return dataType.ToLowerInvariant() switch //This list is not exhaustive
         {
-            "bigint" => SCLType.Integer,
-            "bit" => SCLType.Bool,
-            "bit varying" => SCLType.Bool,
-            "boolean" => SCLType.Bool,
-            "char" => SCLType.String,
-            "character varying" => SCLType.String,
-            "character" => SCLType.String,
-            "varchar" => SCLType.String,
-            "date" => SCLType.Date,
-            "double precision" => SCLType.Double,
-            "integer" => SCLType.Integer,
-            "numeric" => SCLType.Double,
-            "decimal" => SCLType.Double,
-            "real" => SCLType.Double,
-            "smallint" => SCLType.Integer,
-            "text" => SCLType.String,
-            "time" => SCLType.Date,
-            "timestamp" => SCLType.Date,
+            "bigint" => TypeReference.Actual.Integer,
+            "bit" => TypeReference.Actual.Bool,
+            "bit varying" => TypeReference.Actual.Bool,
+            "boolean" => TypeReference.Actual.Bool,
+            "char" => TypeReference.Actual.String,
+            "character varying" => TypeReference.Actual.String,
+            "character" => TypeReference.Actual.String,
+            "varchar" => TypeReference.Actual.String,
+            "date" => TypeReference.Actual.Date,
+            "double precision" => TypeReference.Actual.Double,
+            "integer" => TypeReference.Actual.Integer,
+            "numeric" => TypeReference.Actual.Double,
+            "decimal" => TypeReference.Actual.Double,
+            "real" => TypeReference.Actual.Double,
+            "smallint" => TypeReference.Actual.Integer,
+            "text" => TypeReference.Actual.String,
+            "time" => TypeReference.Actual.Date,
+            "timestamp" => TypeReference.Actual.Date,
             _ => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(dataType, column)
         };
     }
 
-    internal static Result<SCLType, IErrorBuilder> TryConvertSqlDataType(
+    internal static Result<TypeReference.Actual, IErrorBuilder> TryConvertSqlDataType(
         SqlDataType dataType,
         string column)
     {
@@ -71,19 +71,19 @@ internal static class TypeConversion
                 dataType,
                 column
             ),
-            SqlDataType.BigInt => SCLType.Integer,
+            SqlDataType.BigInt => TypeReference.Actual.Integer,
             SqlDataType.Binary => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
                 dataType,
                 column
             ),
-            SqlDataType.Bit            => SCLType.Bool,
-            SqlDataType.Char           => SCLType.String,
-            SqlDataType.Date           => SCLType.Date,
-            SqlDataType.DateTime       => SCLType.Date,
-            SqlDataType.DateTime2      => SCLType.Date,
-            SqlDataType.DateTimeOffset => SCLType.Date,
-            SqlDataType.Decimal        => SCLType.Double,
-            SqlDataType.Float          => SCLType.Double,
+            SqlDataType.Bit            => TypeReference.Actual.Bool,
+            SqlDataType.Char           => TypeReference.Actual.String,
+            SqlDataType.Date           => TypeReference.Actual.Date,
+            SqlDataType.DateTime       => TypeReference.Actual.Date,
+            SqlDataType.DateTime2      => TypeReference.Actual.Date,
+            SqlDataType.DateTimeOffset => TypeReference.Actual.Date,
+            SqlDataType.Decimal        => TypeReference.Actual.Double,
+            SqlDataType.Float          => TypeReference.Actual.Double,
             SqlDataType.Geography => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
                 dataType,
                 column
@@ -100,22 +100,22 @@ internal static class TypeConversion
                 dataType,
                 column
             ),
-            SqlDataType.Int           => SCLType.Integer,
-            SqlDataType.Money         => SCLType.Double,
-            SqlDataType.NChar         => SCLType.String,
-            SqlDataType.NText         => SCLType.String,
-            SqlDataType.Numeric       => SCLType.Double,
-            SqlDataType.NVarChar      => SCLType.String,
-            SqlDataType.NVarCharMax   => SCLType.String,
-            SqlDataType.Real          => SCLType.Double,
-            SqlDataType.SmallDateTime => SCLType.Date,
-            SqlDataType.SmallInt      => SCLType.Integer,
-            SqlDataType.SmallMoney    => SCLType.Double,
-            SqlDataType.SysName       => SCLType.String,
-            SqlDataType.Text          => SCLType.String,
-            SqlDataType.Time          => SCLType.Date,
-            SqlDataType.Timestamp     => SCLType.Date,
-            SqlDataType.TinyInt       => SCLType.Integer,
+            SqlDataType.Int           => TypeReference.Actual.Integer,
+            SqlDataType.Money         => TypeReference.Actual.Double,
+            SqlDataType.NChar         => TypeReference.Actual.String,
+            SqlDataType.NText         => TypeReference.Actual.String,
+            SqlDataType.Numeric       => TypeReference.Actual.Double,
+            SqlDataType.NVarChar      => TypeReference.Actual.String,
+            SqlDataType.NVarCharMax   => TypeReference.Actual.String,
+            SqlDataType.Real          => TypeReference.Actual.Double,
+            SqlDataType.SmallDateTime => TypeReference.Actual.Date,
+            SqlDataType.SmallInt      => TypeReference.Actual.Integer,
+            SqlDataType.SmallMoney    => TypeReference.Actual.Double,
+            SqlDataType.SysName       => TypeReference.Actual.String,
+            SqlDataType.Text          => TypeReference.Actual.String,
+            SqlDataType.Time          => TypeReference.Actual.Date,
+            SqlDataType.Timestamp     => TypeReference.Actual.Date,
+            SqlDataType.TinyInt       => TypeReference.Actual.Integer,
             SqlDataType.UniqueIdentifier => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
                 dataType,
                 column
@@ -128,10 +128,10 @@ internal static class TypeConversion
                 dataType,
                 column
             ),
-            SqlDataType.VarChar    => SCLType.String,
-            SqlDataType.VarCharMax => SCLType.String,
-            SqlDataType.Variant    => SCLType.String,
-            SqlDataType.Xml        => SCLType.String,
+            SqlDataType.VarChar    => TypeReference.Actual.String,
+            SqlDataType.VarCharMax => TypeReference.Actual.String,
+            SqlDataType.Variant    => TypeReference.Actual.String,
+            SqlDataType.Xml        => TypeReference.Actual.String,
             SqlDataType.XmlNode => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
                 dataType,
                 column
@@ -166,25 +166,18 @@ internal static class TypeConversion
             }
             case SchemaValueType.Boolean:
             {
-                switch (databaseType)
-                {
-                    case DatabaseType.Postgres: return "boolean";
-
-                    case DatabaseType.SQLite:
-                    case DatabaseType.MsSql:
-                        return SqlDataType.Bit.ToString().ToUpperInvariant();
-
-                    case DatabaseType.MySql:
-                    case DatabaseType.MariaDb:
-                        return MySqlDbType.Bit.ToString().ToUpperInvariant();
-                    default:
-                        throw new ArgumentOutOfRangeException(
-                            nameof(databaseType),
-                            databaseType,
-                            null
-                        );
+                    return databaseType switch
+                    {
+                        DatabaseType.Postgres => "boolean",
+                        DatabaseType.SQLite or DatabaseType.MsSql => SqlDataType.Bit.ToString().ToUpperInvariant(),
+                        DatabaseType.MySql or DatabaseType.MariaDb => MySqlDbType.Bit.ToString().ToUpperInvariant(),
+                        _ => throw new ArgumentOutOfRangeException(
+nameof(databaseType),
+databaseType,
+null
+),
+                    };
                 }
-            }
             case SchemaValueType.String:
             {
                 var format = schema.Keywords!.OfType<FormatKeyword>()
@@ -227,52 +220,38 @@ internal static class TypeConversion
             }
             case SchemaValueType.Number:
             {
-                switch (databaseType)
-                {
-                    case DatabaseType.Postgres: return "double precision";
-
-                    case DatabaseType.SQLite:
-                    case DatabaseType.MsSql:
-                        return SqlDataType.Float.ToString().ToUpperInvariant();
-
-                    case DatabaseType.MySql:
-                    case DatabaseType.MariaDb:
-                        return MySqlDbType.Float.ToString().ToUpperInvariant();
-                    default:
-                        throw new ArgumentOutOfRangeException(
-                            nameof(databaseType),
-                            databaseType,
-                            null
-                        );
+                    return databaseType switch
+                    {
+                        DatabaseType.Postgres => "double precision",
+                        DatabaseType.SQLite or DatabaseType.MsSql => SqlDataType.Float.ToString().ToUpperInvariant(),
+                        DatabaseType.MySql or DatabaseType.MariaDb => MySqlDbType.Float.ToString().ToUpperInvariant(),
+                        _ => throw new ArgumentOutOfRangeException(
+nameof(databaseType),
+databaseType,
+null
+),
+                    };
                 }
-            }
             case SchemaValueType.Integer:
             {
-                switch (databaseType)
-                {
-                    case DatabaseType.Postgres: return "integer";
-
-                    case DatabaseType.SQLite:
-                    case DatabaseType.MsSql:
-                        return SqlDataType.Int.ToString().ToUpperInvariant();
-
-                    case DatabaseType.MySql:
-                    case DatabaseType.MariaDb:
-                        return "INT";
-                    default:
-                        throw new ArgumentOutOfRangeException(
-                            nameof(databaseType),
-                            databaseType,
-                            null
-                        );
+                    return databaseType switch
+                    {
+                        DatabaseType.Postgres => "integer",
+                        DatabaseType.SQLite or DatabaseType.MsSql => SqlDataType.Int.ToString().ToUpperInvariant(),
+                        DatabaseType.MySql or DatabaseType.MariaDb => "INT",
+                        _ => throw new ArgumentOutOfRangeException(
+nameof(databaseType),
+databaseType,
+null
+),
+                    };
                 }
-            }
             case SchemaValueType.Null:
             {
                 return ErrorCode_Sql.CouldNotCreateTable
                     .ToErrorBuilder("Sql does not support null data type");
             }
-            default: throw new ArgumentOutOfRangeException();
+            default: throw new ArgumentOutOfRangeException(type.ToString());
         }
     }
 }
