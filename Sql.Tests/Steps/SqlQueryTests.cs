@@ -30,7 +30,7 @@ public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
                             },
                             Action = new LambdaFunction<Entity, Unit>(
                                 null,
-                                new Print<Entity>() { Value = GetEntityVariable }
+                                new Print() { Value = GetEntityVariable }
                             )
                         },
                         Unit.Default

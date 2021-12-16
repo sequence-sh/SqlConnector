@@ -77,48 +77,28 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         return r;
     }
 
-    private static void SetType(JsonSchemaBuilder builder, SCLType sclType)
+    private static void SetType(JsonSchemaBuilder builder, TypeReference.Actual sclType)
     {
-        switch (sclType)
+        if(sclType == TypeReference.Actual.String)
+            builder.Type(SchemaValueType.String);
+        else if(sclType == TypeReference.Actual.Integer)
+            builder.Type(SchemaValueType.Integer);
+        else if(sclType == TypeReference.Actual.Double)
+            builder.Type(SchemaValueType.Number);
+        else if(sclType is TypeReference.Enum)
+            builder.Type(SchemaValueType.String);
+        else if(sclType == TypeReference.Actual.Bool)
+            builder.Type(SchemaValueType.Boolean);
+        else if(sclType == TypeReference.Actual.Date)
         {
-            case SCLType.String:
-            {
-                builder.Type(SchemaValueType.String);
-                break;
-            }
-            case SCLType.Integer:
-            {
-                builder.Type(SchemaValueType.Integer);
-                break;
-            }
-            case SCLType.Double:
-            {
-                builder.Type(SchemaValueType.Number);
-                break;
-            }
-            case SCLType.Enum:
-            {
-                builder.Type(SchemaValueType.String);
-                break;
-            }
-            case SCLType.Bool:
-            {
-                builder.Type(SchemaValueType.Boolean);
-                break;
-            }
-            case SCLType.Date:
-            {
-                builder.Type(SchemaValueType.String);
-                builder.Format(new Format("date-time"));
-                break;
-            }
-            case SCLType.Entity:
-            {
-                builder.Type(SchemaValueType.Object);
-                break;
-            }
-            default: throw new ArgumentOutOfRangeException();
+            builder.Type(SchemaValueType.String);
+            builder.Format(new Format("date-time"));
         }
+        else if(sclType == TypeReference.Actual.Entity)
+        {
+            builder.Type(SchemaValueType.Object);
+        }
+        else  throw new ArgumentOutOfRangeException(sclType.Name);
     }
 
     private static Result<Entity, IErrorBuilder> Convert(

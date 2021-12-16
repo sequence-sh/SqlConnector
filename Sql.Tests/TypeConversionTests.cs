@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using CSharpFunctionalExtensions;
 using FluentAssertions;
 using Json.Schema;
 using Microsoft.SqlServer.Management.SqlParser.Metadata;
@@ -60,46 +61,46 @@ public partial class TypeConversionTests
         {
             foreach (var sqlDataType in Enum.GetValues<SqlDataType>())
             {
-                SCLType? expectedSCLType = sqlDataType switch
+                TypeReference.Actual? expectedSCLType = sqlDataType switch
                 {
                     SqlDataType.None => null,
-                    SqlDataType.BigInt => SCLType.Integer,
+                    SqlDataType.BigInt => TypeReference.Actual.Integer,
                     SqlDataType.Binary => null,
-                    SqlDataType.Bit => SCLType.Bool,
-                    SqlDataType.Char => SCLType.String,
-                    SqlDataType.Date => SCLType.Date,
-                    SqlDataType.DateTime => SCLType.Date,
-                    SqlDataType.DateTime2 => SCLType.Date,
-                    SqlDataType.DateTimeOffset => SCLType.Date,
-                    SqlDataType.Decimal => SCLType.Double,
-                    SqlDataType.Float => SCLType.Double,
+                    SqlDataType.Bit => TypeReference.Actual.Bool,
+                    SqlDataType.Char => TypeReference.Actual.String,
+                    SqlDataType.Date => TypeReference.Actual.Date,
+                    SqlDataType.DateTime => TypeReference.Actual.Date,
+                    SqlDataType.DateTime2 => TypeReference.Actual.Date,
+                    SqlDataType.DateTimeOffset => TypeReference.Actual.Date,
+                    SqlDataType.Decimal => TypeReference.Actual.Double,
+                    SqlDataType.Float => TypeReference.Actual.Double,
                     SqlDataType.Geography => null,
                     SqlDataType.Geometry => null,
                     SqlDataType.HierarchyId => null,
                     SqlDataType.Image => null,
-                    SqlDataType.Int => SCLType.Integer,
-                    SqlDataType.Money => SCLType.Double,
-                    SqlDataType.NChar => SCLType.String,
-                    SqlDataType.NText => SCLType.String,
-                    SqlDataType.Numeric => SCLType.Double,
-                    SqlDataType.NVarChar => SCLType.String,
-                    SqlDataType.NVarCharMax => SCLType.String,
-                    SqlDataType.Real => SCLType.Double,
-                    SqlDataType.SmallDateTime => SCLType.Date,
-                    SqlDataType.SmallInt => SCLType.Integer,
-                    SqlDataType.SmallMoney => SCLType.Double,
-                    SqlDataType.SysName => SCLType.String,
-                    SqlDataType.Text => SCLType.String,
-                    SqlDataType.Time => SCLType.Date,
-                    SqlDataType.Timestamp => SCLType.Date,
-                    SqlDataType.TinyInt => SCLType.Integer,
+                    SqlDataType.Int => TypeReference.Actual.Integer,
+                    SqlDataType.Money => TypeReference.Actual.Double,
+                    SqlDataType.NChar => TypeReference.Actual.String,
+                    SqlDataType.NText => TypeReference.Actual.String,
+                    SqlDataType.Numeric => TypeReference.Actual.Double,
+                    SqlDataType.NVarChar => TypeReference.Actual.String,
+                    SqlDataType.NVarCharMax => TypeReference.Actual.String,
+                    SqlDataType.Real => TypeReference.Actual.Double,
+                    SqlDataType.SmallDateTime => TypeReference.Actual.Date,
+                    SqlDataType.SmallInt => TypeReference.Actual.Integer,
+                    SqlDataType.SmallMoney => TypeReference.Actual.Double,
+                    SqlDataType.SysName => TypeReference.Actual.String,
+                    SqlDataType.Text => TypeReference.Actual.String,
+                    SqlDataType.Time => TypeReference.Actual.Date,
+                    SqlDataType.Timestamp => TypeReference.Actual.Date,
+                    SqlDataType.TinyInt => TypeReference.Actual.Integer,
                     SqlDataType.UniqueIdentifier => null,
                     SqlDataType.VarBinary => null,
                     SqlDataType.VarBinaryMax => null,
-                    SqlDataType.VarChar => SCLType.String,
-                    SqlDataType.VarCharMax => SCLType.String,
-                    SqlDataType.Variant => SCLType.String,
-                    SqlDataType.Xml => SCLType.String,
+                    SqlDataType.VarChar => TypeReference.Actual.String,
+                    SqlDataType.VarCharMax => TypeReference.Actual.String,
+                    SqlDataType.Variant => TypeReference.Actual.String,
+                    SqlDataType.Xml => TypeReference.Actual.String,
                     SqlDataType.XmlNode => null,
                     _ => throw new ArgumentOutOfRangeException(sqlDataType.ToString())
                 };
@@ -114,42 +115,42 @@ public partial class TypeConversionTests
             }
 
             var pg = DatabaseType.Postgres;
-            yield return new ConvertSQLDataTypeTest("bigint",            pg, SCLType.Integer);
-            yield return new ConvertSQLDataTypeTest("bit",               pg, SCLType.Bool);
-            yield return new ConvertSQLDataTypeTest("bit varying",       pg, SCLType.Bool);
-            yield return new ConvertSQLDataTypeTest("boolean",           pg, SCLType.Bool);
-            yield return new ConvertSQLDataTypeTest("char",              pg, SCLType.String);
-            yield return new ConvertSQLDataTypeTest("character varying", pg, SCLType.String);
-            yield return new ConvertSQLDataTypeTest("character",         pg, SCLType.String);
-            yield return new ConvertSQLDataTypeTest("varchar",           pg, SCLType.String);
-            yield return new ConvertSQLDataTypeTest("date",              pg, SCLType.Date);
-            yield return new ConvertSQLDataTypeTest("double precision",  pg, SCLType.Double);
-            yield return new ConvertSQLDataTypeTest("integer",           pg, SCLType.Integer);
-            yield return new ConvertSQLDataTypeTest("numeric",           pg, SCLType.Double);
-            yield return new ConvertSQLDataTypeTest("decimal",           pg, SCLType.Double);
-            yield return new ConvertSQLDataTypeTest("real",              pg, SCLType.Double);
-            yield return new ConvertSQLDataTypeTest("smallint",          pg, SCLType.Integer);
-            yield return new ConvertSQLDataTypeTest("text",              pg, SCLType.String);
-            yield return new ConvertSQLDataTypeTest("time",              pg, SCLType.Date);
-            yield return new ConvertSQLDataTypeTest("timestamp",         pg, SCLType.Date);
+            yield return new ConvertSQLDataTypeTest("bigint",            pg, TypeReference.Actual.Integer);
+            yield return new ConvertSQLDataTypeTest("bit",               pg, TypeReference.Actual.Bool);
+            yield return new ConvertSQLDataTypeTest("bit varying",       pg, TypeReference.Actual.Bool);
+            yield return new ConvertSQLDataTypeTest("boolean",           pg, TypeReference.Actual.Bool);
+            yield return new ConvertSQLDataTypeTest("char",              pg, TypeReference.Actual.String);
+            yield return new ConvertSQLDataTypeTest("character varying", pg, TypeReference.Actual.String);
+            yield return new ConvertSQLDataTypeTest("character",         pg, TypeReference.Actual.String);
+            yield return new ConvertSQLDataTypeTest("varchar",           pg, TypeReference.Actual.String);
+            yield return new ConvertSQLDataTypeTest("date",              pg, TypeReference.Actual.Date);
+            yield return new ConvertSQLDataTypeTest("double precision",  pg, TypeReference.Actual.Double);
+            yield return new ConvertSQLDataTypeTest("integer",           pg, TypeReference.Actual.Integer);
+            yield return new ConvertSQLDataTypeTest("numeric",           pg, TypeReference.Actual.Double);
+            yield return new ConvertSQLDataTypeTest("decimal",           pg, TypeReference.Actual.Double);
+            yield return new ConvertSQLDataTypeTest("real",              pg, TypeReference.Actual.Double);
+            yield return new ConvertSQLDataTypeTest("smallint",          pg, TypeReference.Actual.Integer);
+            yield return new ConvertSQLDataTypeTest("text",              pg, TypeReference.Actual.String);
+            yield return new ConvertSQLDataTypeTest("time",              pg, TypeReference.Actual.Date);
+            yield return new ConvertSQLDataTypeTest("timestamp",         pg, TypeReference.Actual.Date);
         }
     }
 
     public record ConvertSQLDataTypeTest
     (
-        String DataTypeString,
+        string DataTypeString,
         DatabaseType DatabaseType,
-        SCLType? ExpectedSCLType) : AutoTheory.ITestInstance
+        TypeReference.Actual? ExpectedSCLType) : AutoTheory.ITestInstance
     {
         /// <inheritdoc />
         public void Run(ITestOutputHelper testOutputHelper)
         {
             var actual = TypeConversion.TryConvertDataType(DataTypeString, "column", DatabaseType);
 
-            if (ExpectedSCLType.HasValue)
+            if (ExpectedSCLType is not null)
             {
                 actual.ShouldBeSuccessful();
-                actual.Value.Should().Be(ExpectedSCLType.Value);
+                actual.Value.Should().Be(ExpectedSCLType);
             }
             else
             {

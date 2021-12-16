@@ -41,7 +41,7 @@ public sealed class CreateMySQLConnectionString : CompoundStep<Entity>
             return password.ConvertFailure<Entity>();
 
         var connectionString =
-            $"Server={server.Value};Port={port.Value};Database={database.Value};Uid={username.Value};Pwd={password.Value};";
+            $"Server={server.Value};Port={port.Value.Value};Database={database.Value};Uid={username.Value};Pwd={password.Value};";
 
         var databaseConnection = new DatabaseConnectionMetadata
         {
@@ -90,7 +90,7 @@ public sealed class CreateMySQLConnectionString : CompoundStep<Entity>
     /// </summary>
     [StepProperty(5)]
     [DefaultValueExplanation("3306")]
-    public IStep<int> Port { get; set; } = new IntConstant(3306);
+    public IStep<SCLInt> Port { get; set; } = new SCLConstant<SCLInt>(3306.ConvertToSCLObject());
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } =
