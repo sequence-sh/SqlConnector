@@ -3,6 +3,6 @@ include:
     file: .gitlab-ci.linux.yml
 
 variables:
-  PACKAGE_NAME_NUGET: Reductech.EDR.Connectors.Sql
-  PACKAGE_NAME_DLL: Reductech.EDR.Connectors.Sql
+  PACKAGE_NAME_NUGET: Reductech.Sequence.Connectors.Sql
+  PACKAGE_NAME_DLL: Reductech.Sequence.Connectors.Sql
   PUBLISH_CONNECTOR: 1

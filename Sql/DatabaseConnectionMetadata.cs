@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
-using Reductech.EDR.Core.Internal.Errors;
-using Entity = Reductech.EDR.Core.Entity;
+using Reductech.Sequence.Core.Internal.Errors;
+using Entity = Reductech.Sequence.Core.Entity;
 
-namespace Reductech.EDR.Connectors.Sql;
+namespace Reductech.Sequence.Connectors.Sql;
 
 [Serializable]
 public class DatabaseConnectionMetadata : IEntityConvertible

@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Reductech.EDR.Core.Internal.Logging;
+using Reductech.Sequence.Core.Internal.Logging;
 
-namespace Reductech.EDR.Connectors.Sql;
+namespace Reductech.Sequence.Connectors.Sql;
 
 /// <summary>
 /// Log situations for the SQL Connector.

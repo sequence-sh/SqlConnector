@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
-using Reductech.EDR.Connectors.Sql.Steps;
+using Reductech.Sequence.Connectors.Sql.Steps;
 
-namespace Reductech.EDR.Connectors.Sql.Tests;
+namespace Reductech.Sequence.Connectors.Sql.Tests;
 
 /// <summary>
 /// Makes sure all steps have a test class

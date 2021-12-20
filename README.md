@@ -1,6 +1,6 @@
-# EDR SQL Database Connector
+# Sequence SQL Database Connector
 
-[Reductech EDR](https://gitlab.com/reductech/edr) is a collection of
+[Reductech Sequence](https://gitlab.com/reductech/sequence) is a collection of
 libraries that automates cross-application e-discovery and forensic workflows.
 
 The SQL connector contains Steps to:
@@ -101,11 +101,6 @@ This is an example of a step that drops a table, recreates it, and inserts an en
     DatabaseType: 'SQLite'
 ```
 
-### [Try SQL Connector](https://gitlab.com/reductech/edr/edr/-/releases)
-
-Using [EDR](https://gitlab.com/reductech/edr/edr),
-the command line tool for running Sequences.
-
 ## Documentation
 
 - Documentation is available here: https://docs.reductech.io
@@ -113,14 +108,14 @@ the command line tool for running Sequences.
 ## E-discovery Reduct
 
 The SQL Connector is part of a group of projects called
-[E-discovery Reduct](https://gitlab.com/reductech/edr)
-which consists of a collection of [Connectors](https://gitlab.com/reductech/edr/connectors)
+[E-discovery Reduct](https://gitlab.com/reductech/sequence
+which consists of a collection of [Connectors](https://gitlab.com/reductech/sequence/connectors)
 and a command-line application for running Sequences, called
-[EDR](https://gitlab.com/reductech/edr/edr/-/releases).
+[Sequence](https://gitlab.com/reductech/sequence/console/-/releases).
 
 # Releases
 
-Can be downloaded from the [Releases page](https://gitlab.com/reductech/edr/connectors/sql/-/releases).
+Can be downloaded from the [Releases page](https://gitlab.com/reductech/sequence/connectors/sql/-/releases).
 
 # NuGet Packages
 

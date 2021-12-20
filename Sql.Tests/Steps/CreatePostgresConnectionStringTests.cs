@@ -1,6 +1,6 @@
-﻿using Reductech.EDR.Connectors.Sql.Steps;
+﻿using Reductech.Sequence.Connectors.Sql.Steps;
 
-namespace Reductech.EDR.Connectors.Sql.Tests.Steps;
+namespace Reductech.Sequence.Connectors.Sql.Tests.Steps;
 
 public partial class
     CreatePostgresConnectionStringTests : StepTestBase<CreatePostgresConnectionString, Entity>

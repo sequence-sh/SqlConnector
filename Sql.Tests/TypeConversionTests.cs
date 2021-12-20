@@ -4,9 +4,9 @@ using FluentAssertions;
 using Json.Schema;
 using Microsoft.SqlServer.Management.SqlParser.Metadata;
 using Xunit.Abstractions;
-using static Reductech.EDR.Core.TestHarness.SchemaHelpers;
+using static Reductech.Sequence.Core.TestHarness.SchemaHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests;
+namespace Reductech.Sequence.Connectors.Sql.Tests;
 
 [AutoTheory.UseTestOutputHelper]
 public partial class TypeConversionTests

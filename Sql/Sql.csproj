@@ -4,23 +4,23 @@
     <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <RootNamespace>Reductech.EDR.Connectors.Sql</RootNamespace>
-    <AssemblyName>Reductech.EDR.Connectors.Sql</AssemblyName>
+    <RootNamespace>Reductech.Sequence.Connectors.Sql</RootNamespace>
+    <AssemblyName>Reductech.Sequence.Connectors.Sql</AssemblyName>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <Nullable>enable</Nullable>
     <Version>0.13.0$(VersionSuffix)</Version>
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>Reductech.EDR.Connectors.Sql</PackageId>
-    <Title>EDR SQL Database Connector</Title>
+    <PackageId>Reductech.Sequence.Connectors.Sql</PackageId>
+    <Title>Sequence® SQL Database Connector</Title>
     <Description>Class library for building sequences that interact with SQL databases</Description>
-    <Product>EDR</Product>
-    <PackageTags>ediscovery;forensics;sql;databases;automation;orchestration;edrm</PackageTags>
+    <Product>Sequence®</Product>
+    <PackageTags>ediscovery;forensics;sql;databases;automation;orchestration;edrm;sequence</PackageTags>
 
-    <PackageProjectUrl>https://gitlab.com/reductech/edr/connectors/sql</PackageProjectUrl>
-    <RepositoryUrl>https://gitlab.com/reductech/edr/connectors/sql.git</RepositoryUrl>
-    <PackageReleaseNotes>https://gitlab.com/reductech/edr/connectors/sql/-/blob/master/CHANGELOG.md</PackageReleaseNotes>
+    <PackageProjectUrl>https://gitlab.com/reductech/sequence/connectors/sql</PackageProjectUrl>
+    <RepositoryUrl>https://gitlab.com/reductech/sequence/connectors/sql.git</RepositoryUrl>
+    <PackageReleaseNotes>https://gitlab.com/reductech/sequence/connectors/sql/-/blob/master/CHANGELOG.md</PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 
     <Authors>Reductech</Authors>
@@ -34,7 +34,7 @@
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="MySqlConnector" Version="1.3.14" />
     <PackageReference Include="Npgsql" Version="5.0.11" />
-    <PackageReference Include="Reductech.EDR.Core" Version="0.13.0-a.main.2112200210">
+    <PackageReference Include="Reductech.Sequence.Core" Version="0.13.0-a.main.2112201532">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115.5" />

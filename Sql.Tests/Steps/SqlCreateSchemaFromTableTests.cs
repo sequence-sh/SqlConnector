@@ -1,11 +1,11 @@
 ﻿using System.Data;
 using Json.More;
 using Json.Schema;
-using Reductech.EDR.Connectors.Sql.Steps;
-using static Reductech.EDR.Core.TestHarness.SchemaHelpers;
-using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
+using Reductech.Sequence.Connectors.Sql.Steps;
+using static Reductech.Sequence.Core.TestHarness.SchemaHelpers;
+using static Reductech.Sequence.Connectors.Sql.Tests.StaticHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests.Steps;
+namespace Reductech.Sequence.Connectors.Sql.Tests.Steps;
 
 public partial class SqlCreateSchemaFromTableTests : StepTestBase<SqlCreateSchemaFromTable, Entity>
 {
