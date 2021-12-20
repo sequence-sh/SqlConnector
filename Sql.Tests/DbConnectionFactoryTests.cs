@@ -5,7 +5,7 @@ using MySqlConnector;
 using Npgsql;
 using Xunit.Abstractions;
 
-namespace Reductech.EDR.Connectors.Sql.Tests;
+namespace Reductech.Sequence.Connectors.Sql.Tests;
 
 [AutoTheory.UseTestOutputHelper]
 public partial class DbConnectionFactoryTests

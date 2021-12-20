@@ -3,11 +3,11 @@ using System.Linq;
 using System.Text;
 using Json.Schema;
 using MoreLinq;
-using Reductech.EDR.Core.Entities;
-using Reductech.EDR.Core.Internal.Errors;
-using Entity = Reductech.EDR.Core.Entity;
+using Reductech.Sequence.Core.Entities;
+using Reductech.Sequence.Core.Internal.Errors;
+using Entity = Reductech.Sequence.Core.Entity;
 
-namespace Reductech.EDR.Connectors.Sql.Steps;
+namespace Reductech.Sequence.Connectors.Sql.Steps;
 
 /// <summary>
 /// Inserts data into a SQL table

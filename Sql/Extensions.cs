@@ -1,9 +1,9 @@
 ﻿using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Reductech.EDR.Core.Internal.Errors;
+using Reductech.Sequence.Core.Internal.Errors;
 
-namespace Reductech.EDR.Connectors.Sql;
+namespace Reductech.Sequence.Connectors.Sql;
 
 public static class Extensions
 {

@@ -1,7 +1,7 @@
 ﻿using System.Data;
 using Moq;
 
-namespace Reductech.EDR.Connectors.Sql.Tests;
+namespace Reductech.Sequence.Connectors.Sql.Tests;
 
 public static class DbMockHelper
 {

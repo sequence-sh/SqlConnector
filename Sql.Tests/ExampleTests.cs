@@ -4,14 +4,14 @@ using System.Threading.Tasks;
 using Json.More;
 using Json.Schema;
 using Microsoft.Extensions.Logging;
-using Reductech.EDR.Connectors.Sql.Steps;
-using Reductech.EDR.Core.Abstractions;
-using Reductech.EDR.Core.Internal.Serialization;
-using Reductech.EDR.Core.Steps;
+using Reductech.Sequence.Connectors.Sql.Steps;
+using Reductech.Sequence.Core.Abstractions;
+using Reductech.Sequence.Core.Internal.Serialization;
+using Reductech.Sequence.Core.Steps;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Reductech.EDR.Connectors.Sql.Tests;
+namespace Reductech.Sequence.Connectors.Sql.Tests;
 
 /// <summary>
 /// These are not really tests but ways to quickly and easily run steps

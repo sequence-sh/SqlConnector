@@ -2,9 +2,9 @@
 using Json.Schema;
 using Microsoft.SqlServer.Management.SqlParser.Metadata;
 using MySqlConnector;
-using Reductech.EDR.Core.Internal.Errors;
+using Reductech.Sequence.Core.Internal.Errors;
 
-namespace Reductech.EDR.Connectors.Sql;
+namespace Reductech.Sequence.Connectors.Sql;
 
 internal static class TypeConversion
 {

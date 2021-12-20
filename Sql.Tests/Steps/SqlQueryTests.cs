@@ -1,9 +1,9 @@
 ﻿using System.Data;
-using Reductech.EDR.Connectors.Sql.Steps;
-using Reductech.EDR.Core.Steps;
-using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
+using Reductech.Sequence.Connectors.Sql.Steps;
+using Reductech.Sequence.Core.Steps;
+using static Reductech.Sequence.Connectors.Sql.Tests.StaticHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests.Steps;
+namespace Reductech.Sequence.Connectors.Sql.Tests.Steps;
 
 public partial class SqlQueryTests : StepTestBase<SqlQuery, Array<Entity>>
 {

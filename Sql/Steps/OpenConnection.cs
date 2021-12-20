@@ -1,7 +1,7 @@
-﻿using Reductech.EDR.Core.Internal.Errors;
-using Entity = Reductech.EDR.Core.Entity;
+﻿using Reductech.Sequence.Core.Internal.Errors;
+using Entity = Reductech.Sequence.Core.Entity;
 
-namespace Reductech.EDR.Connectors.Sql.Steps;
+namespace Reductech.Sequence.Connectors.Sql.Steps;
 
 /// <summary>
 /// Open a new connection to a database.

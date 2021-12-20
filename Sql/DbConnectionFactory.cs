@@ -4,7 +4,7 @@ using Microsoft.Data.SqlClient;
 using MySqlConnector;
 using Npgsql;
 
-namespace Reductech.EDR.Connectors.Sql;
+namespace Reductech.Sequence.Connectors.Sql;
 
 /// <inheritdoc />
 public class DbConnectionFactory : IDbConnectionFactory

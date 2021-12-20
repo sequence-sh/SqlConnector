@@ -1,12 +1,12 @@
 ﻿using System.Linq;
 using Json.More;
 using Json.Schema;
-using Reductech.EDR.Connectors.Sql.Steps;
-using Reductech.EDR.Core.Entities;
-using Reductech.EDR.Core.Steps;
-using static Reductech.EDR.Connectors.Sql.Tests.StaticHelpers;
+using Reductech.Sequence.Connectors.Sql.Steps;
+using Reductech.Sequence.Core.Entities;
+using Reductech.Sequence.Core.Steps;
+using static Reductech.Sequence.Connectors.Sql.Tests.StaticHelpers;
 
-namespace Reductech.EDR.Connectors.Sql.Tests.Steps;
+namespace Reductech.Sequence.Connectors.Sql.Tests.Steps;
 
 public partial class SqlInsertTests : StepTestBase<SqlInsert, Unit>
 {
