@@ -1,3 +1,12 @@
+# v0.13.0 (2022-01-16)
+
+## Issues Closed in this Release
+
+### Maintenance
+
+- Rename EDR to Sequence #41
+- Update Core to latest version #37
+
 # v0.12.1 (2021-12-01)
 
 Bug fix release.
@@ -108,4 +117,5 @@ This connector supports:
 ### Maintenance
 
 - Update version of Core to support enhanced logging #5
+
 
