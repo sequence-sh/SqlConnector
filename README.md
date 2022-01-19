@@ -1,6 +1,6 @@
-# Sequence SQL Database Connector
+# Sequence® SQL Database Connector
 
-[Reductech Sequence](https://gitlab.com/reductech/sequence) is a collection of
+[Sequence®](https://gitlab.com/reductech/sequence) is a collection of
 libraries that automates cross-application e-discovery and forensic workflows.
 
 The SQL connector contains Steps to:
@@ -100,18 +100,6 @@ This is an example of a step that drops a table, recreates it, and inserts an en
     Schema: <Schema>
     DatabaseType: 'SQLite'
 ```
-
-## Documentation
-
-- Documentation is available here: https://docs.reductech.io
-
-## E-discovery Reduct
-
-The SQL Connector is part of a group of projects called
-[E-discovery Reduct](https://gitlab.com/reductech/sequence
-which consists of a collection of [Connectors](https://gitlab.com/reductech/sequence/connectors)
-and a command-line application for running Sequences, called
-[Sequence](https://gitlab.com/reductech/sequence/console/-/releases).
 
 # Releases
 
