@@ -1,3 +1,7 @@
+# v0.14.0 (2022-03-25)
+
+Maintenance release - dependency updates only.
+
 # v0.13.0 (2022-01-16)
 
 EDR is now Sequence. The following has changed:
@@ -128,5 +132,6 @@ This connector supports:
 ### Maintenance
 
 - Update version of Core to support enhanced logging #5
+
 
 
