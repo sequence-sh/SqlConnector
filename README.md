@@ -101,6 +101,10 @@ This is an example of a step that drops a table, recreates it, and inserts an en
     DatabaseType: 'SQLite'
 ```
 
+# Documentation
+
+Documentation available at https://sequence.sh
+
 # Releases
 
 Can be downloaded from the [Releases page](https://gitlab.com/reductech/sequence/connectors/sql/-/releases).
