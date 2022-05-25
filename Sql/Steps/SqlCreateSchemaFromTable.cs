@@ -77,28 +77,29 @@ public sealed class SqlCreateSchemaFromTable : CompoundStep<Entity>
         return r;
     }
 
-    private static void SetType(JsonSchemaBuilder builder, TypeReference.Actual sclType)
+    private static void SetType(JsonSchemaBuilder builder, TypeReference sclType)
     {
-        if(sclType == TypeReference.Actual.String)
+        if (sclType == TypeReference.Actual.String)
             builder.Type(SchemaValueType.String);
-        else if(sclType == TypeReference.Actual.Integer)
+        else if (sclType == TypeReference.Actual.Integer)
             builder.Type(SchemaValueType.Integer);
-        else if(sclType == TypeReference.Actual.Double)
+        else if (sclType == TypeReference.Actual.Double)
             builder.Type(SchemaValueType.Number);
-        else if(sclType is TypeReference.Enum)
+        else if (sclType is TypeReference.Enum)
             builder.Type(SchemaValueType.String);
-        else if(sclType == TypeReference.Actual.Bool)
+        else if (sclType == TypeReference.Actual.Bool)
             builder.Type(SchemaValueType.Boolean);
-        else if(sclType == TypeReference.Actual.Date)
+        else if (sclType == TypeReference.Actual.Date)
         {
             builder.Type(SchemaValueType.String);
             builder.Format(new Format("date-time"));
         }
-        else if(sclType == TypeReference.Actual.Entity)
+        else if (sclType is TypeReference.Entity)
         {
             builder.Type(SchemaValueType.Object);
         }
-        else  throw new ArgumentOutOfRangeException(sclType.Name);
+        else
+            throw new ArgumentOutOfRangeException(sclType.Name);
     }
 
     private static Result<Entity, IErrorBuilder> Convert(
