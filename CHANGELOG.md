@@ -1,3 +1,9 @@
+# v0.16.0 (2022-07-13)
+
+- Enabled [Source Link](https://docs.microsoft.com/en-us/dotnet/standard/library-guidance/sourcelink)
+- Enabled publish to [Nuget.org](https://www.nuget.org) including symbols
+- Update Core to v0.16.0
+
 # v0.15.0 (2022-05-27)
 
 Maintenance release - dependency updates only.
@@ -35,7 +41,7 @@ Bug fix release.
 ### Bug Fixes
 
 - Explicity reference System.Text.Json and exclude assets
- #33
+  #33
 
 # v0.12.0 (2021-11-26)
 
@@ -136,7 +142,3 @@ This connector supports:
 ### Maintenance
 
 - Update version of Core to support enhanced logging #5
-
-
-
-
