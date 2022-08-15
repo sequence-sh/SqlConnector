@@ -63,9 +63,6 @@
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" />
-    <PackageReference Include="System.Text.Json" Version="5.0.2">
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
