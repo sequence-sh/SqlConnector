@@ -22,7 +22,7 @@ public partial class
                 new DatabaseConnectionMetadata()
                 {
                     ConnectionString =
-                        "Server=Server;Database=Database;User Id=UserName;Password=Password;",
+                        "Server=\"Server\";Database=\"Database\";User Id=\"UserName\";Password=\"Password\";",
                     DatabaseType = DatabaseType.MsSql
                 }.ConvertToEntity()
             );
@@ -36,7 +36,29 @@ public partial class
                 new DatabaseConnectionMetadata()
                 {
                     ConnectionString =
-                        "Server=Server;Database=Database;Integrated Security=true;",
+                        "Server=\"Server\";Database=\"Database\";Integrated Security=true;",
+                    DatabaseType = DatabaseType.MsSql
+                }.ConvertToEntity()
+            );
+
+            yield return new StepCase(
+                "Create connection string with all parameters set",
+                new CreateMsSQLConnectionString
+                {
+                    Database               = Constant("Database"),
+                    Password               = Constant("Password"),
+                    Server                 = Constant("Server"),
+                    UserName               = Constant("UserName"),
+                    AttachDbFilename       = Constant("ADBF"),
+                    Authentication         = Constant("AUTH"),
+                    Encrypt                = Constant(true),
+                    TrustServerCertificate = Constant(true),
+                    IntegratedSecurity     = Constant(true),
+                },
+                new DatabaseConnectionMetadata()
+                {
+                    ConnectionString =
+                        @"Server=""Server"";Database=""Database"";User Id=""UserName"";Password=""Password"";Integrated Security=true;Encrypt=true;TrustServerCertificate=true;AttachDbFileName=""ADBF"";Authentication=""ADBF"";",
                     DatabaseType = DatabaseType.MsSql
                 }.ConvertToEntity()
             );
