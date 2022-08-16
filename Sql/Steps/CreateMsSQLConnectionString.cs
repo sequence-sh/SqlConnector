@@ -8,70 +8,85 @@ namespace Reductech.Sequence.Connectors.Sql.Steps;
 /// </summary>
 public sealed class CreateMsSQLConnectionString : CompoundStep<Entity>
 {
+    private static string EscapeString(string s)
+    {
+        return "\"" + s.Replace("\"", "\"\"") + "\"";
+    }
+
     /// <inheritdoc />
     protected override async Task<Result<Entity, IError>> Run(
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {
-        var server = await Server.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
+        var result = await
+            stateMonad.RunStepsAsync(
+                Server.WrapStringStream(),
+                Database.WrapStringStream(),
+                UserName.WrapNullable(StepMaps.String()),
+                Password.WrapNullable(StepMaps.String()),
+                AttachDbFilename.WrapNullable(StepMaps.String()),
+                Authentication.WrapNullable(StepMaps.String()),
+                Encrypt,
+                IntegratedSecurity,
+                TrustServerCertificate,
+                cancellationToken
+            );
 
-        if (server.IsFailure)
-            return server.ConvertFailure<Entity>();
+        if (result.IsFailure)
+            return result.ConvertFailure<Entity>();
 
-        var db = await Database.Run(stateMonad, cancellationToken).Map(x => x.GetStringAsync());
+        var (server, db, user, pass, attachDbFilename, authentication, encrypt,
+                integratedSecurity, trustServerCertificate)
+            = result.Value;
 
-        if (db.IsFailure)
-            return db.ConvertFailure<Entity>();
+        var cs = $"Server={EscapeString(server)};Database={EscapeString(db)};";
 
-        var cs = $"Server={server.Value};Database={db.Value};";
-
-        string? user = null;
-
-        if (UserName != null)
+        if (user.HasValue || pass.HasValue)
         {
-            var userResult = await UserName.Run(stateMonad, cancellationToken)
-                .Map(x => x.GetStringAsync());
-
-            if (userResult.IsFailure)
-                return userResult.ConvertFailure<Entity>();
-
-            user = userResult.Value;
-        }
-
-        string? pass = null;
-
-        if (Password != null)
-        {
-            var passResult = await Password.Run(stateMonad, cancellationToken)
-                .Map(x => x.GetStringAsync());
-
-            if (passResult.IsFailure)
-                return passResult.ConvertFailure<Entity>();
-
-            pass = passResult.Value;
-        }
-
-        if (!string.IsNullOrEmpty(user) || !string.IsNullOrEmpty(pass))
-        {
-            if (string.IsNullOrEmpty(user))
+            if (user.HasNoValue || string.IsNullOrEmpty(user.Value))
                 return new SingleError(
                     new ErrorLocation(this),
                     ErrorCode.MissingParameter,
                     nameof(UserName)
                 );
 
-            if (string.IsNullOrEmpty(pass))
+            if (pass.HasNoValue || string.IsNullOrEmpty(pass.Value))
                 return new SingleError(
                     new ErrorLocation(this),
                     ErrorCode.MissingParameter,
                     nameof(Password)
                 );
 
-            cs += $"User Id={user};Password={pass};";
+            cs += $"User Id={EscapeString(user.Value)};Password={EscapeString(pass.Value)};";
         }
         else
         {
+            integratedSecurity = SCLBool.True;
+        }
+
+        if (integratedSecurity.Value)
+        {
             cs += "Integrated Security=true;";
+        }
+
+        if (encrypt.Value)
+        {
+            cs += "Encrypt=true;";
+        }
+
+        if (trustServerCertificate.Value)
+        {
+            cs += "TrustServerCertificate=true;";
+        }
+
+        if (attachDbFilename.HasValue)
+        {
+            cs += $"AttachDbFileName={EscapeString(attachDbFilename.Value)};";
+        }
+
+        if (authentication.HasValue)
+        {
+            cs += $"Authentication={EscapeString(attachDbFilename.Value)};";
         }
 
         var databaseConnection = new DatabaseConnectionMetadata()
@@ -112,6 +127,52 @@ public sealed class CreateMsSQLConnectionString : CompoundStep<Entity>
     [StepProperty(4)]
     [DefaultValueExplanation("Use integrated security if not set.")]
     public IStep<StringStream>? Password { get; set; } = null;
+
+    /// <summary>
+    /// The name of the primary database file, including the full path name of an attachable database.
+    /// AttachDBFilename is only supported for primary data files with an .mdf extension.
+    /// </summary>
+    [StepProperty]
+    [DefaultValueExplanation("None")]
+    [Alias("ExtendedProperties")]
+    [Alias("InitialFileName")]
+    public IStep<StringStream>? AttachDbFilename { get; set; } = null;
+
+    /// <summary>
+    /// The authentication method used for Connecting to SQL Database By Using Azure Active Directory Authentication.
+    /// Valid values are: Active Directory Integrated, Active Directory Password, Sql Password.
+    /// </summary>
+    [StepProperty]
+    [DefaultValueExplanation("None")]
+    public IStep<StringStream>? Authentication { get; set; } = null;
+
+    /// <summary>
+    /// When true, SQL Server uses SSL encryption for all data sent between the client and server if the server has a certificate installed.
+    /// Recognized values are true, false, yes, and no.
+    /// For more information, see Connection String Syntax.
+    /// </summary>
+    [StepProperty]
+    [DefaultValueExplanation("False")]
+    public IStep<SCLBool> Encrypt { get; set; } = new SCLConstant<SCLBool>(SCLBool.False);
+
+    /// <summary>
+    /// When false, User ID and Password are specified in the connection.
+    /// When true, the current Windows account credentials are used for authentication.
+    /// </summary>
+    [StepProperty]
+    [DefaultValueExplanation("True if Username and Password are not set")]
+    [Alias("TrustedConnection")]
+    public IStep<SCLBool> IntegratedSecurity { get; set; } =
+        new SCLConstant<SCLBool>(SCLBool.False);
+
+    /// <summary>
+    /// When set to true, SSL is used to encrypt the channel when bypassing walking the certificate chain to validate trust.
+    /// If TrustServerCertificate is set to true and Encrypt is set to false, the channel is not encrypted.
+    /// </summary>
+    [StepProperty]
+    [DefaultValueExplanation("False")]
+    public IStep<SCLBool> TrustServerCertificate { get; set; } =
+        new SCLConstant<SCLBool>(SCLBool.False);
 
     /// <inheritdoc />
     public override IStepFactory StepFactory { get; } =
