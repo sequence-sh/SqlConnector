@@ -239,7 +239,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
             }
 
             var vr = schema.Validate(
-                entity.ToJsonElement(),
+                entity.ConvertToJsonElement(),
                 SchemaExtensions.DefaultValidationOptions
             );
 
@@ -301,33 +301,37 @@ public sealed class SqlInsert : CompoundStep<Unit>
             if (entityValue.HasNoValue)
                 return (null, DbType.String);
 
-            return GetValue( entityValue.GetValueOrThrow(), columnName );
+            return GetValue(entityValue.GetValueOrThrow(), columnName);
 
-            static Result<(object? o, DbType dbType), IErrorBuilder>  GetValue(ISCLObject sclObject, string columnName)
+            static Result<(object? o, DbType dbType), IErrorBuilder> GetValue(
+                ISCLObject sclObject,
+                string columnName)
             {
                 return sclObject switch
-            {
-                SCLBool boolean => (boolean.Value, DbType.Boolean),
-                SCLDateTime date   => (date.Value, DbType.DateTime2),
-                SCLInt integer => (integer.Value, DbType.Int32),
-                SCLDouble d        => (d.Value, DbType.Double),
-                ISCLEnum enumerationValue => (
-                    enumerationValue.EnumValue, DbType.String),
-                
-                Entity => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                    nameof(Entity),
-                    columnName
-                ),
-                IArray => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
-                    "Array",
-                    columnName
-                ),
-                SCLNull => (null, DbType.String),
-                Unit => (null, DbType.String),
-                StringStream s => (s.GetString(), DbType.String),
-                ISCLOneOf oneOf => GetValue( oneOf.Value, columnName),
-                _ => throw new ArgumentOutOfRangeException(sclObject.Serialize(SerializeOptions.Serialize))
-            };
+                {
+                    SCLBool boolean  => (boolean.Value, DbType.Boolean),
+                    SCLDateTime date => (date.Value, DbType.DateTime2),
+                    SCLInt integer   => (integer.Value, DbType.Int32),
+                    SCLDouble d      => (d.Value, DbType.Double),
+                    ISCLEnum enumerationValue => (
+                        enumerationValue.EnumValue, DbType.String),
+
+                    Entity => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
+                        nameof(Entity),
+                        columnName
+                    ),
+                    IArray => ErrorCode_Sql.CouldNotHandleDataType.ToErrorBuilder(
+                        "Array",
+                        columnName
+                    ),
+                    SCLNull         => (null, DbType.String),
+                    Unit            => (null, DbType.String),
+                    StringStream s  => (s.GetString(), DbType.String),
+                    ISCLOneOf oneOf => GetValue(oneOf.Value, columnName),
+                    _ => throw new ArgumentOutOfRangeException(
+                        sclObject.Serialize(SerializeOptions.Serialize)
+                    )
+                };
             }
         }
     }
