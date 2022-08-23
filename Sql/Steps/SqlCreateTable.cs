@@ -33,9 +33,9 @@ public sealed class SqlCreateTable : CompoundStep<Unit>
         if (databaseConnectionMetadata.IsFailure)
             return databaseConnectionMetadata.ConvertFailure<Unit>();
 
-        var schema =
-            EntityConversionHelpers.TryCreateFromEntity<JsonSchema>(entity.Value)
-                .MapError(x => x.WithLocation(this));
+        var schema = EntityHelpers.CreateSchemaFromEntity(entity.Value)
+            //EntityConversionHelpers.TryCreateFromEntity<JsonSchema>(entity.Value)
+            .MapError(x => x.WithLocation(this));
 
         if (schema.IsFailure)
             return schema.ConvertFailure<Unit>();
