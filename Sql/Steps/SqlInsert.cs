@@ -239,7 +239,7 @@ public sealed class SqlInsert : CompoundStep<Unit>
             }
 
             var vr = schema.Validate(
-                entity.ConvertToJsonElement(),
+                entity.ToJsonElement(),
                 SchemaExtensions.DefaultValidationOptions
             );
 
