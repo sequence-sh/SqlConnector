@@ -1,6 +1,6 @@
 ﻿using System.Data;
+using System.Data.SqlClient;
 using System.Data.SQLite;
-using Microsoft.Data.SqlClient;
 using MySqlConnector;
 using Npgsql;
 
