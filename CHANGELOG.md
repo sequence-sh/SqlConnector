@@ -1,3 +1,30 @@
+# v0.17.0 (2022-08-29)
+
+## Summary of Changes
+
+### Connector Updates
+
+- Added additional parameters to `CreateMsSQLConnectionString`
+   - AttachDBFilename
+   - Authentication
+   - Encrypt
+   - Integrated Security
+   - TrustServerCertificate
+
+## Issues Closed in this Release
+
+### New Features
+
+- Add additional parameters to CreateMsSQLConnectionString #128
+
+### Bug Fixes
+
+- ToJsonElement MissingMethodException #132
+
+### Other
+
+- Change reference to Microsoft.Data.SqlClient to System.Data.SqlClient #133
+
 # v0.16.0 (2022-07-13)
 
 - Enabled [Source Link](https://docs.microsoft.com/en-us/dotnet/standard/library-guidance/sourcelink)
@@ -142,3 +169,4 @@ This connector supports:
 ### Maintenance
 
 - Update version of Core to support enhanced logging #5
+
