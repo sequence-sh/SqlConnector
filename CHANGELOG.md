@@ -1,5 +1,11 @@
 # v0.17.0 (2022-08-29)
 
+Switched to using the `System.Data.SqlClient` package as `Microsoft.Data.SqlClient` package
+was causing issues with JSON dependencies when packaged as a connector.
+
+Added additional parameters to `CreateMsSQLConnectionString` to allow unencrypted and local
+connections.
+
 ## Summary of Changes
 
 ### Connector Updates
@@ -169,4 +175,3 @@ This connector supports:
 ### Maintenance
 
 - Update version of Core to support enhanced logging #5
-
