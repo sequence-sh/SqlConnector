@@ -1,3 +1,36 @@
+# v0.17.0 (2022-08-29)
+
+Switched to using the `System.Data.SqlClient` package as `Microsoft.Data.SqlClient` package
+was causing issues with JSON dependencies when packaged as a connector.
+
+Added additional parameters to `CreateMsSQLConnectionString` to allow unencrypted and local
+connections.
+
+## Summary of Changes
+
+### Connector Updates
+
+- Added additional parameters to `CreateMsSQLConnectionString`
+   - AttachDBFilename
+   - Authentication
+   - Encrypt
+   - Integrated Security
+   - TrustServerCertificate
+
+## Issues Closed in this Release
+
+### New Features
+
+- Add additional parameters to CreateMsSQLConnectionString #128
+
+### Bug Fixes
+
+- ToJsonElement MissingMethodException #132
+
+### Other
+
+- Change reference to Microsoft.Data.SqlClient to System.Data.SqlClient #133
+
 # v0.16.0 (2022-07-13)
 
 - Enabled [Source Link](https://docs.microsoft.com/en-us/dotnet/standard/library-guidance/sourcelink)
