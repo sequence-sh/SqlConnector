@@ -57,7 +57,7 @@
     <PackageReference Include="Microsoft.SqlServer.Management.SqlParser" Version="160.22515.0" />
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="MySqlConnector" Version="2.1.13" />
-    <PackageReference Include="Npgsql" Version="6.0.6" />
+    <PackageReference Include="Npgsql" Version="6.0.7" />
     <PackageReference Include="Reductech.Sequence.Core" Version="0.18.0-a.main.2209120413">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
