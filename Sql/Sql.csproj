@@ -58,7 +58,7 @@
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="MySqlConnector" Version="2.1.13" />
     <PackageReference Include="Npgsql" Version="6.0.7" />
-    <PackageReference Include="Reductech.Sequence.Core" Version="0.18.0-a.main.2209271454">
+    <PackageReference Include="Reductech.Sequence.Core" Version="0.18.0-a.main.2209280412">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
