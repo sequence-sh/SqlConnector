@@ -15,7 +15,7 @@ namespace Reductech.Sequence.Connectors.Sql.Steps;
 public sealed class SqlInsert : CompoundStep<Unit>
 {
     /// <inheritdoc />
-    protected override async Task<Result<Unit, IError>> Run(
+    protected override async ValueTask<Result<Unit, IError>> Run(
         IStateMonad stateMonad,
         CancellationToken cancellationToken)
     {

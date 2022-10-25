@@ -1,6 +1,8 @@
-﻿using System.Data;
+﻿using System.Collections.Immutable;
+using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Reductech.Sequence.Core.Entities;
 using Reductech.Sequence.Core.Internal.Errors;
 
 namespace Reductech.Sequence.Connectors.Sql;
@@ -64,15 +66,17 @@ public static class Extensions
 
             //TODO async properly
 
+            var headers = Enumerable.Range(0, reader.FieldCount)
+                .Select(reader.GetName)
+                .Select(x => new EntityKey(x))
+                .ToImmutableArray();
+
             while (!reader.IsClosed && reader.Read() && !cancellation.IsCancellationRequested)
             {
                 reader.GetValues(row);
-                var props = new List<(string, object?)>(row.Length);
+                var values = row.Select(ISCLObject.CreateFromCSharpObject).ToImmutableArray();
 
-                for (var col = 0; col < row.Length; col++)
-                    props.Add((reader.GetName(col), row[col]));
-
-                yield return Core.Entity.Create(props.ToArray());
+                yield return new Core.Entity(headers, values);
             }
         }
         finally
