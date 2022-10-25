@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using Reductech.Sequence.Core.Internal.Errors;
 using Entity = Reductech.Sequence.Core.Entity;
+using CSharpFunctionalExtensions.ValueTasks;
 
 namespace Reductech.Sequence.Connectors.Sql;
 
@@ -16,7 +17,7 @@ public class DatabaseConnectionMetadata : IEntityConvertible
 
     [JsonPropertyName("DatabaseType")] public DatabaseType DatabaseType { get; set; }
 
-    public static async Task<Result<DatabaseConnectionMetadata, IError>> TrySetConnection(
+    public static async ValueTask<Result<DatabaseConnectionMetadata, IError>> TrySetConnection(
         Entity dbConnectionEntity,
         IStateMonad stateMonad,
         IStep step)
