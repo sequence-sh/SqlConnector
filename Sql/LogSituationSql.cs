@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Reductech.Sequence.Core.Internal.Logging;
+using Sequence.Core.Internal.Logging;
 
-namespace Reductech.Sequence.Connectors.Sql;
+namespace Sequence.Connectors.Sql;
 
 /// <summary>
 /// Log situations for the SQL Connector.

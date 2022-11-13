@@ -4,7 +4,7 @@ using System.Data.SQLite;
 using MySqlConnector;
 using Npgsql;
 
-namespace Reductech.Sequence.Connectors.Sql;
+namespace Sequence.Connectors.Sql;
 
 /// <inheritdoc />
 public class DbConnectionFactory : IDbConnectionFactory

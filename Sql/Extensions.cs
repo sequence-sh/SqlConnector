@@ -2,10 +2,10 @@
 using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Reductech.Sequence.Core.Entities;
-using Reductech.Sequence.Core.Internal.Errors;
+using Sequence.Core.Entities;
+using Sequence.Core.Internal.Errors;
 
-namespace Reductech.Sequence.Connectors.Sql;
+namespace Sequence.Connectors.Sql;
 
 public static class Extensions
 {

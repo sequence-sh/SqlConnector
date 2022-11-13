@@ -1,14 +1,14 @@
 ﻿using System.Text.Json.Serialization;
-using Reductech.Sequence.Core.Internal.Errors;
-using Entity = Reductech.Sequence.Core.Entity;
+using Sequence.Core.Internal.Errors;
+using Entity = Sequence.Core.Entity;
 using CSharpFunctionalExtensions.ValueTasks;
 
-namespace Reductech.Sequence.Connectors.Sql;
+namespace Sequence.Connectors.Sql;
 
 [Serializable]
 public class DatabaseConnectionMetadata : IEntityConvertible
 {
-    public const string DatabaseConnectionKey1 = "ReductechDatabaseConnection";
+    public const string DatabaseConnectionKey1 = "SequenceDatabaseConnection";
 
     public static readonly VariableName DatabaseConnectionVariableName =
         new(DatabaseConnectionKey1);

@@ -1,7 +1,7 @@
-﻿using Reductech.Sequence.Core.Internal.Errors;
-using Entity = Reductech.Sequence.Core.Entity;
+﻿using Sequence.Core.Internal.Errors;
+using Entity = Sequence.Core.Entity;
 
-namespace Reductech.Sequence.Connectors.Sql.Steps;
+namespace Sequence.Connectors.Sql.Steps;
 
 /// <summary>
 /// Create a database connection string for a MySQL database.

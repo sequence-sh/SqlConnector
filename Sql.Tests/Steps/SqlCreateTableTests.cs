@@ -3,13 +3,13 @@ using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
 using FluentAssertions;
 using Json.Schema;
-using Reductech.Sequence.Connectors.Sql.Steps;
-using Reductech.Sequence.Core.Entities;
+using Sequence.Connectors.Sql.Steps;
+using Sequence.Core.Entities;
 using Xunit.Abstractions;
-using static Reductech.Sequence.Core.TestHarness.SchemaHelpers;
-using static Reductech.Sequence.Connectors.Sql.Tests.StaticHelpers;
+using static Sequence.Core.TestHarness.SchemaHelpers;
+using static Sequence.Connectors.Sql.Tests.StaticHelpers;
 
-namespace Reductech.Sequence.Connectors.Sql.Tests.Steps;
+namespace Sequence.Connectors.Sql.Tests.Steps;
 
 public partial class SqlCreateTableTests : StepTestBase<SqlCreateTable, Unit>
 {

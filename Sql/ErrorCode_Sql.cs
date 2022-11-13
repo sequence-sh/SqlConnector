@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
-using Reductech.Sequence.Core.Internal.Errors;
+using Sequence.Core.Internal.Errors;
 
-namespace Reductech.Sequence.Connectors.Sql;
+namespace Sequence.Connectors.Sql;
 
 /// <summary>
 /// Identifying code for an error message in Sql connector
