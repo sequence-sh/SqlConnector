@@ -56,12 +56,12 @@
     </PackageReference>
     <PackageReference Include="Microsoft.SqlServer.Management.SqlParser" Version="160.22519.0" />
     <PackageReference Include="morelinq" Version="3.3.2" />
-    <PackageReference Include="MySqlConnector" Version="2.1.13" />
+    <PackageReference Include="MySqlConnector" Version="2.2.0" />
     <PackageReference Include="Npgsql" Version="6.0.7" />
     <PackageReference Include="Sequence.Core" Version="0.18.0-a.main.2211102318">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.4" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.116" />
   </ItemGroup>
 
