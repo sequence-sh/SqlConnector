@@ -57,8 +57,8 @@
     <PackageReference Include="Microsoft.SqlServer.Management.SqlParser" Version="160.22519.0" />
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="MySqlConnector" Version="2.2.0" />
-    <PackageReference Include="Npgsql" Version="6.0.7" />
-    <PackageReference Include="Sequence.Core" Version="0.18.0-a.main.2211102318">
+    <PackageReference Include="Npgsql" Version="7.0.0" />
+    <PackageReference Include="Sequence.Core" Version="0.18.0-a.main.2211141306">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
