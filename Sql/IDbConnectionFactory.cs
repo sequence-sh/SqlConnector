@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace Reductech.Sequence.Connectors.Sql;
+namespace Sequence.Connectors.Sql;
 
 /// <summary>
 /// A way of creating / retrieving database connections based on

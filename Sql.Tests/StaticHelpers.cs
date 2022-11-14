@@ -1,4 +1,4 @@
-﻿namespace Reductech.Sequence.Connectors.Sql.Tests;
+﻿namespace Sequence.Connectors.Sql.Tests;
 
 public static class StaticHelpers
 {

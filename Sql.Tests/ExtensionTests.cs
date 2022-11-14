@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Reductech.Sequence.Connectors.Sql.Tests;
+namespace Sequence.Connectors.Sql.Tests;
 
 [AutoTheory.UseTestOutputHelper]
 public partial class ExtensionTests

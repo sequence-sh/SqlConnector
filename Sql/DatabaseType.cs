@@ -1,4 +1,4 @@
-﻿namespace Reductech.Sequence.Connectors.Sql;
+﻿namespace Sequence.Connectors.Sql;
 
 /// <summary>
 /// The type of database to connect to

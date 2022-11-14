@@ -1,7 +1,7 @@
-﻿using Reductech.Sequence.Connectors.Sql.Steps;
-using static Reductech.Sequence.Connectors.Sql.Tests.StaticHelpers;
+﻿using Sequence.Connectors.Sql.Steps;
+using static Sequence.Connectors.Sql.Tests.StaticHelpers;
 
-namespace Reductech.Sequence.Connectors.Sql.Tests.Steps;
+namespace Sequence.Connectors.Sql.Tests.Steps;
 
 public partial class SqlCommandTests : StepTestBase<SqlCommand, Unit>
 {

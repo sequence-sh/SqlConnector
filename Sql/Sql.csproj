@@ -4,27 +4,27 @@
     <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <RootNamespace>Reductech.Sequence.Connectors.Sql</RootNamespace>
-    <AssemblyName>Reductech.Sequence.Connectors.Sql</AssemblyName>
+    <RootNamespace>Sequence.Connectors.Sql</RootNamespace>
+    <AssemblyName>Sequence.Connectors.Sql</AssemblyName>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <Nullable>enable</Nullable>
     <Version>0.18.0$(VersionSuffix)</Version>
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>Reductech.Sequence.Connectors.Sql</PackageId>
-    <Title>Sequence® SQL Database Connector</Title>
+    <PackageId>Sequence.Connectors.Sql</PackageId>
+    <Title>Sequence SQL Database Connector</Title>
     <Description>Sequence connector for automating workflows that interact with SQL databases.</Description>
     <Product>Sequence®</Product>
     <PackageTags>ediscovery;forensics;sql;databases;automation;orchestration;edrm;sequence</PackageTags>
 
     <PackageProjectUrl>https://sequence.sh</PackageProjectUrl>
-    <RepositoryUrl>https://gitlab.com/reductech/sequence/connectors/sql.git</RepositoryUrl>
-    <PackageReleaseNotes>https://gitlab.com/reductech/sequence/connectors/sql/-/blob/master/CHANGELOG.md</PackageReleaseNotes>
+    <RepositoryUrl>https://gitlab.com/sequence/connectors/sql.git</RepositoryUrl>
+    <PackageReleaseNotes>https://gitlab.com/sequence/connectors/sql/-/blob/master/CHANGELOG.md</PackageReleaseNotes>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
-    <Authors>Reductech</Authors>
+    <Authors>MarkWainwright;antonyoni</Authors>
     <Company>Reductech</Company>
     <Copyright>Copyright (c) 2022 Reductech Ltd</Copyright>
   </PropertyGroup>
@@ -58,7 +58,7 @@
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="MySqlConnector" Version="2.1.13" />
     <PackageReference Include="Npgsql" Version="6.0.7" />
-    <PackageReference Include="Reductech.Sequence.Core" Version="0.18.0-a.main.2211070211">
+    <PackageReference Include="Sequence.Core" Version="0.18.0-a.main.2211102318">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="System.Data.SqlClient" Version="4.8.4" />

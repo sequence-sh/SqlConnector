@@ -3,11 +3,12 @@ using System.Linq;
 using System.Text;
 using Json.Schema;
 using MoreLinq;
-using Reductech.Sequence.Core.Entities;
-using Reductech.Sequence.Core.Internal.Errors;
-using Entity = Reductech.Sequence.Core.Entity;
+using Sequence.Core.Entities;
+using Sequence.Core.Entities.Schema;
+using Sequence.Core.Internal.Errors;
+using Entity = Sequence.Core.Entity;
 
-namespace Reductech.Sequence.Connectors.Sql.Steps;
+namespace Sequence.Connectors.Sql.Steps;
 
 /// <summary>
 /// Inserts data into a SQL table
@@ -243,14 +244,18 @@ public sealed class SqlInsert : CompoundStep<Unit>
                 SchemaExtensions.DefaultValidationOptions
             );
 
+            var transformRoot = new TransformRoot(0, entity);
+
             if (!vr.IsValid)
             {
                 errors.AddRange(
-                    vr.GetErrorMessages()
+                    vr.GetErrorMessages(transformRoot)
                         .Select(
-                            x => ErrorCode.SchemaViolation.ToErrorBuilder(
+                            x => ErrorCode.SchemaViolated.ToErrorBuilder(
                                 x.message,
-                                x.location
+                                x.location,
+                                x.transformRoot.RowNumber,
+                                x.transformRoot.Entity
                             )
                         )
                 );

@@ -1,6 +1,6 @@
-﻿using Reductech.Sequence.Connectors.Sql.Steps;
+﻿using Sequence.Connectors.Sql.Steps;
 
-namespace Reductech.Sequence.Connectors.Sql.Tests.Steps;
+namespace Sequence.Connectors.Sql.Tests.Steps;
 
 public partial class
     CreateMySqlConnectionStringTests : StepTestBase<CreateMySQLConnectionString, Entity>

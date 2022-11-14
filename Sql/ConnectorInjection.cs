@@ -1,7 +1,7 @@
-﻿using Reductech.Sequence.Core.Connectors;
-using Reductech.Sequence.Core.Internal.Errors;
+﻿using Sequence.Core.Connectors;
+using Sequence.Core.Internal.Errors;
 
-namespace Reductech.Sequence.Connectors.Sql;
+namespace Sequence.Connectors.Sql;
 
 /// <inheritdoc />
 public sealed class ConnectorInjection : IConnectorInjection

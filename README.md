@@ -1,4 +1,4 @@
-# Sequence® SQL Database Connector
+# Sequence SQL Database Connector
 
 [Sequence®](https://sequence.sh) is a collection of libraries for
 automation of cross-application e-discovery and forensic workflows.
@@ -115,7 +115,7 @@ https://sequence.sh/playground
 
 # Package Releases
 
-Can be downloaded from the [Releases page](https://gitlab.com/reductech/sequence/connectors/sql/-/releases).
+Can be downloaded from the [Releases page](https://gitlab.com/sequence/connectors/sql/-/releases).
 
 # NuGet Packages
 

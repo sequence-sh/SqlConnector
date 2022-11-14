@@ -4,10 +4,10 @@ using Json.More;
 using Json.Schema;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
-using Reductech.Sequence.Core.Internal.Errors;
-using Entity = Reductech.Sequence.Core.Entity;
+using Sequence.Core.Internal.Errors;
+using Entity = Sequence.Core.Entity;
 
-namespace Reductech.Sequence.Connectors.Sql.Steps;
+namespace Sequence.Connectors.Sql.Steps;
 
 /// <summary>
 /// Creates a Schema entity from a SQL table

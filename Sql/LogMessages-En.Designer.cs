@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Reductech.Sequence.Connectors.Sql {
+namespace Sequence.Connectors.Sql {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Reductech.Sequence.Connectors.Sql {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Reductech.Sequence.Connectors.Sql.LogMessages-EN", typeof(LogMessages_EN).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Sequence.Connectors.Sql.LogMessages-EN", typeof(LogMessages_EN).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
