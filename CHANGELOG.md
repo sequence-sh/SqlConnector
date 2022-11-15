@@ -1,3 +1,20 @@
+# v0.18.0 (2022-11-14)
+
+## Summary of Changes
+
+- Sequence has a new home: https://gitlab.com/sequence
+- The namespace has been updated from `Reductech.Sequence` to `Sequence`
+
+## Issues Closed in this Release
+
+### Bug Fixes
+
+- The type initializer for LogSituationSql threw an exception #163
+
+### Other
+
+- Update namespace and paths after move to Sequence group #160
+
 # v0.17.0 (2022-08-29)
 
 Switched to using the `System.Data.SqlClient` package as `Microsoft.Data.SqlClient` package
@@ -175,3 +192,4 @@ This connector supports:
 ### Maintenance
 
 - Update version of Core to support enhanced logging #5
+
